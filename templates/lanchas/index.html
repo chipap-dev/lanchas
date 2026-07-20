@@ -1,0 +1,661 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Lanchas — horarios · Delta del Tigre{% endblock %}
+{% block favicon %}<link rel="icon" type="image/png" href="{% static 'img/logos/lanchas.png' %}" />{% endblock %}
+{% block pwa %}
+<link rel="manifest" href="{% static 'pwa/manifest-lanchas.json' %}" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content="Lanchas" />
+<link rel="apple-touch-icon" href="{% static 'img/logos/lanchas.png' %}" />
+{% endblock %}
+{% block body_class %}is-app-page{% endblock %}
+{% block og_tags %}
+<meta property="og:type" content="website" />
+<meta property="og:url" content="{{ request.build_absolute_uri }}" />
+<meta property="og:title" content="Lanchas — horarios · Delta del Tigre | Chipap" />
+<meta property="og:description" content="Consultá los horarios de las lanchas colectivas del Delta del Tigre sin buscar entre varios PDF." />
+<meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'img/logos/lanchas.png' %}" />
+<meta property="og:image:alt" content="Lanchas" />
+{% endblock %}
+{% block extra_head %}
+<meta name="theme-color" content="#F5EEE0" id="la-theme-meta" />
+<script>
+// Si no se pidió una vía puntual (?via=...), abrir directo el primer
+// favorito guardado en este dispositivo — antes de pintar nada, para que
+// no se vea un flash del recorrido por defecto del servidor. El favorito
+// solo define la estación por defecto: se descarta el filtro de empresa
+// que traiga guardado para que // LÍNEAS arranque siempre plegado.
+(function () {
+  try {
+    if (new URLSearchParams(window.location.search).has('via')) return;
+    var lista = JSON.parse(localStorage.getItem('la-favoritos') || '[]');
+    if (lista.length && lista[0] && lista[0].href) {
+      var url = new URL(lista[0].href, window.location.href);
+      url.searchParams.delete('empresa');
+      window.location.replace(url.pathname + url.search + window.location.hash);
+    }
+  } catch (e) {}
+})();
+</script>
+{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/lanchas.css' %}?v=20260707i" />
+{% endblock %}
+
+{% block content %}
+<div class="la-app" id="la-app" data-theme="day">
+
+  <!-- ── TOPBAR ──────────────────────────────────────────── -->
+  <header class="la-topbar">
+    <div class="la-brand">
+      <div class="la-icon-chip">
+        <picture>
+          <source srcset="{% static 'img/apps/lanchas/logos/lanchas_logo_transparente.webp' %}" type="image/webp">
+          <img src="{% static 'img/apps/lanchas/logos/lanchas_logo_transparente.png' %}" width="52" height="52" alt="Lanchas" style="display:block;object-fit:contain;">
+        </picture>
+      </div>
+      <div class="la-brand-text">
+        <span class="la-wordmark">Lanchas</span>
+        <span class="la-brand-sub">horarios <span class="la-sep">·</span> Delta del Tigre</span>
+      </div>
+    </div>
+    <div class="la-topbar-search">
+      <span class="la-search-icon">⌕</span>
+      <input type="text" id="la-search" class="la-search-input"
+             placeholder="buscar tramo o destino…" autocomplete="off" value="{{ busqueda }}">
+      <button type="button" id="la-search-clear" class="la-search-clear" aria-label="Limpiar búsqueda" title="Limpiar búsqueda">✕</button>
+    </div>
+    <div class="la-live-badge">
+      <span class="la-live-dot"></span>EN VIVO
+    </div>
+    <div class="la-theme-seg" id="la-theme-seg">
+      <button class="la-theme-btn is-active" data-theme-val="day">◐ DÍA</button>
+      <button class="la-theme-btn" data-theme-val="night">◑ NOCHE</button>
+    </div>
+    <button class="la-theme-icon-btn" id="la-theme-icon-btn" aria-label="Cambiar tema">◐</button>
+  </header>
+
+  <!-- Favoritos: guardados localmente en el dispositivo (localStorage),
+       JS los completa acá y oculta la fila si todavía no hay ninguno -->
+  <div class="la-fav-row" id="la-fav-row" hidden></div>
+
+  <!-- ── BODY (grid 3 cols desktop) ──────────────────────── -->
+  <div class="la-body">
+
+    <!-- SIDEBAR (desktop) -->
+    <aside class="la-sidebar">
+      <details class="la-sidebar-toggle" id="la-sidebar-toggle">
+        <summary class="la-sidebar-label">// LÍNEAS</summary>
+        <nav class="la-lineas-accordion" id="la-lineas-accordion">
+          <details class="la-linea-drop">
+            <summary class="la-station-item{% if not empresa_activa %} is-active{% endif %}">
+              Todas
+            </summary>
+            <nav class="la-linea-recorrido">
+              {% for via in vias_todas %}
+              <a href="?via={{ via.slug }}&vista=hoy"
+                 class="la-station-item la-station-item--sub{% if via == estacion_activa and not empresa_activa %} is-active{% endif %}">
+                {{ via.nombre }}
+              </a>
+              {% endfor %}
+            </nav>
+          </details>
+          {% for empresa, vias_empresa in empresas_con_vias %}
+          <details class="la-linea-drop"{% if empresa_activa == empresa %} open{% endif %}>
+            <summary class="la-station-item{% if empresa_activa == empresa %} is-active{% endif %}">
+              <span class="la-line-dot" style="background:{{ empresa.color }}"></span>
+              {{ empresa.nombre }}
+            </summary>
+            <nav class="la-linea-recorrido">
+              {% for via in vias_empresa %}
+              <a href="?via={{ via.slug }}&vista=hoy&empresa={{ empresa.slug }}"
+                 class="la-station-item la-station-item--sub{% if via == estacion_activa and empresa_activa == empresa %} is-active{% endif %}">
+                {{ via.nombre }}
+              </a>
+              {% empty %}
+              <span class="la-sidebar-empty">Sin recorrido.</span>
+              {% endfor %}
+            </nav>
+          </details>
+          {% endfor %}
+        </nav>
+      </details>
+    </aside>
+
+    <!-- MAIN -->
+    <main class="la-main">
+
+      <!-- Próxima card: mobile only. Solo la hora (tal como figura en el
+           PDF, sin cuenta regresiva — pedido explícito). En "Hoy" muestra
+           Ida y Vuelta; en "Semana sale de Tigre" solo Ida, en "Semana
+           llega a Tigre" solo Vuelta. Siempre visible si hay una vía
+           activa (con su propio "sin más..." si no queda nada hoy). -->
+      {% if estacion_activa %}
+      <div class="la-mobile-next">
+        <div class="la-mobile-next-head">
+          <span class="la-mobile-next-label">PRÓXIMA</span>
+          <span class="la-mobile-live">
+            <span class="la-live-dot"></span>EN VIVO
+          </span>
+        </div>
+
+        {% if vista != "semana_vuelta" %}
+        <div class="la-next-dir">
+          <span class="la-next-dir-label">↗ Sale de Tigre</span>
+          {% if proxima_ida %}
+          <div class="la-mobile-next-time">{{ proxima_ida.hora|time:"H:i" }}</div>
+          <div class="la-mobile-next-meta">
+            <span class="la-line-dot-sm" style="background:{{ proxima_ida.servicio.linea.empresa.color }}"></span>
+            {{ proxima_ida.servicio.linea.empresa.nombre }} · {{ proxima_ida.servicio.nombre }}
+          </div>
+          {% else %}
+          <div class="la-next-empty-sm">Sin más salidas hoy.</div>
+          {% endif %}
+        </div>
+        {% endif %}
+
+        {% if vista == "hoy" %}<div class="la-next-divider"></div>{% endif %}
+
+        {% if vista != "semana_ida" %}
+        <div class="la-next-dir">
+          <span class="la-next-dir-label">↙ Llega a Tigre</span>
+          {% if proxima_vuelta %}
+          <div class="la-mobile-next-time">{{ proxima_vuelta.hora|time:"H:i" }}</div>
+          <div class="la-mobile-next-meta">
+            <span class="la-line-dot-sm" style="background:{{ proxima_vuelta.servicio.linea.empresa.color }}"></span>
+            {{ proxima_vuelta.servicio.linea.empresa.nombre }} · {{ proxima_vuelta.servicio.nombre }}
+          </div>
+          {% else %}
+          <div class="la-next-empty-sm">Sin más llegadas hoy.</div>
+          {% endif %}
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      <!-- Station chips: tablet only -->
+      <div class="la-chips-row">
+        {% for via in estaciones %}
+        <a href="?via={{ via.slug }}&vista=hoy{% if empresa_activa %}&empresa={{ empresa_activa.slug }}{% endif %}"
+           class="la-station-chip{% if via == estacion_activa %} is-active{% endif %}">
+          {{ via.nombre }}
+        </a>
+        {% endfor %}
+      </div>
+
+      <!-- Próxima banner: tablet only. Solo la hora, sin cuenta regresiva.
+           En "Hoy" Ida y Vuelta lado a lado; en cada pestaña de Semana,
+           solo la dirección correspondiente. -->
+      {% if estacion_activa %}
+      <div class="la-proxima-banner">
+        {% if vista != "semana_vuelta" %}
+        <div class="la-proxima-banner-dir">
+          <span class="la-next-dir-label">↗ Sale de Tigre</span>
+          {% if proxima_ida %}
+          <div class="la-proxima-banner-row">
+            <div class="la-proxima-banner-time">{{ proxima_ida.hora|time:"H:i" }}</div>
+            <div class="la-proxima-banner-route">{{ proxima_ida.servicio.nombre }}</div>
+          </div>
+          {% else %}
+          <div class="la-next-empty-sm">Sin más salidas hoy.</div>
+          {% endif %}
+        </div>
+        {% endif %}
+        {% if vista == "hoy" %}<div class="la-proxima-banner-div"></div>{% endif %}
+        {% if vista != "semana_ida" %}
+        <div class="la-proxima-banner-dir">
+          <span class="la-next-dir-label">↙ Llega a Tigre</span>
+          {% if proxima_vuelta %}
+          <div class="la-proxima-banner-row">
+            <div class="la-proxima-banner-time">{{ proxima_vuelta.hora|time:"H:i" }}</div>
+            <div class="la-proxima-banner-route">{{ proxima_vuelta.servicio.nombre }}</div>
+          </div>
+          {% else %}
+          <div class="la-next-empty-sm">Sin más llegadas hoy.</div>
+          {% endif %}
+        </div>
+        {% endif %}
+      </div>
+      {% endif %}
+
+      <!-- Main head -->
+      <div class="la-main-head">
+        <div>
+          <div class="la-section-label">// {% if vista == "semana_ida" %}CRONOGRAMA SEMANAL · SALE DE TIGRE{% elif vista == "semana_vuelta" %}CRONOGRAMA SEMANAL · LLEGA A TIGRE{% else %}SALIDAS DE HOY{% endif %}</div>
+          <div class="la-main-title-row">
+            <div class="la-main-title">
+              {% if estacion_activa %}{{ estacion_activa.nombre }}{% else %}Lanchas Delta del Tigre{% endif %}
+            </div>
+            {% if estacion_activa %}
+            <button type="button" class="la-fav-star" id="la-fav-toggle"
+                    data-slug="{{ estacion_activa.slug }}"
+                    data-nombre="{{ estacion_activa.nombre }}"
+                    data-href="?via={{ estacion_activa.slug }}&vista=hoy{% if empresa_activa %}&empresa={{ empresa_activa.slug }}{% endif %}"
+                    aria-label="Marcar como favorito" title="Marcar como favorito">☆</button>
+            {% endif %}
+          </div>
+        </div>
+        {% if vista == "hoy" %}<div class="la-main-date">{{ fecha_label }}</div>{% endif %}
+      </div>
+
+      <!-- Vista tabs: hoy / semana ida / semana vuelta -->
+      <div class="la-vista-tabs">
+        <a href="?via={{ estacion_activa.slug }}&vista=hoy{% if empresa_activa %}&empresa={{ empresa_activa.slug }}{% endif %}" class="la-vista-tab{% if vista == "hoy" %} is-active{% endif %}">Hoy</a>
+        <a href="?via={{ estacion_activa.slug }}&vista=semana_ida{% if empresa_activa %}&empresa={{ empresa_activa.slug }}{% endif %}" class="la-vista-tab{% if vista == "semana_ida" %} is-active{% endif %}">Semana sale de Tigre</a>
+        <a href="?via={{ estacion_activa.slug }}&vista=semana_vuelta{% if empresa_activa %}&empresa={{ empresa_activa.slug }}{% endif %}" class="la-vista-tab{% if vista == "semana_vuelta" %} is-active{% endif %}">Semana llega a Tigre</a>
+      </div>
+
+      <!-- En mobile es un <details>: arranca colapsado atrás de un "!" y se
+           abre nativamente al tocarlo (sin JS). En desktop/tablet el CSS
+           fuerza el contenido siempre visible, sin cambiar lo que ya andaba
+           bien ahí. -->
+      <details class="la-info-flag">
+        <summary class="la-info-flag-summary" aria-label="Aclaración sobre los horarios">!</summary>
+        <div class="la-info-flag-body">
+          {% if vista == "hoy" %}Mostrando horarios de <strong>hoy, {{ fecha_label }}</strong> — no refleja demoras en tiempo real.<br>{% endif %}
+          Los horarios son siempre desde/hacia Tigre. La <strong>duración aprox.</strong> de cada servicio (⏱) es la del tramo completo: sumala a la hora si es Ida (sale Tigre) o restala si es Vuelta (llega Tigre) para estimar cuándo pasa por un punto intermedio del recorrido.
+        </div>
+      </details>
+
+      <!-- Filter chips: contextuales al lugar elegido (solo líneas que
+           realmente pasan por acá), preseleccionado si se entró desde
+           una línea del sidebar -->
+      <div class="la-filter-row" id="la-filter-row">
+        <button class="la-filter-btn{% if not empresa_activa %} is-active{% endif %}" data-empresa="all">Todas</button>
+        {% for empresa in empresas_de_via %}
+        <button class="la-filter-btn{% if empresa_activa == empresa %} is-active{% endif %}" data-empresa="{{ empresa.slug }}">{{ empresa.nombre }}</button>
+        {% endfor %}
+      </div>
+
+      {% if "semana" in vista %}
+
+      {% if filas_semana %}
+      <!-- .la-semana-wrap da el margen visual desde AFUERA del contenedor
+           con scroll — si ese padding viviera en .la-semana-table (el que
+           tiene overflow-x), se "pierde" apenas se scrollea y la columna
+           HORA (sticky) queda pegada al borde real / deja pasar texto de
+           SERVICIO por esa franja (bug real, visto en celular). -->
+      <div class="la-semana-wrap">
+        <div class="la-semana-table" id="la-semana-table">
+          <div class="la-semana-row la-semana-row--head">
+            <span class="la-semana-hora">HORA</span>
+            <span class="la-semana-servicio">LÍNEA · SERVICIO</span>
+            {% for dia in dias_semana %}<span>{{ dia|slice:":3" }}</span>{% endfor %}
+          </div>
+          {% for fila in filas_semana %}
+          <div class="la-semana-row" data-empresa="{{ fila.linea.empresa.slug }}">
+            <span class="la-semana-hora">
+              {{ fila.hora|time:"H:i" }}
+              {% if fila.condicion %}<span class="la-condicion" title="{{ fila.condicion }}">*</span>{% endif %}
+            </span>
+            <span class="la-semana-servicio">
+              <span class="la-semana-servicio-main">
+                <span class="la-line-dot-sm" style="background:{{ fila.linea.empresa.color }}"></span>
+                {{ fila.nombre }}
+              </span>
+              {% if fila.descripcion %}<span class="la-duracion">⏱ {{ fila.descripcion|cut:"Duración aprox.: " }}</span>{% endif %}
+            </span>
+            {% for dia in dias_semana %}
+            <span class="la-semana-cell{% if dia in fila.dias %} is-on{% endif %}{% if fila.direccion == "vuelta" %} is-vuelta{% endif %}">{% if dia in fila.dias %}✓{% else %}–{% endif %}</span>
+            {% endfor %}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+      {% else %}
+      <div class="la-empty">
+        No hay cronograma semanal cargado{% if estacion_activa %} para {{ estacion_activa.nombre }}{% endif %}.
+      </div>
+      {% endif %}
+
+      {% elif todas_salidas %}
+
+      <!-- Table: desktop + tablet -->
+      <div class="la-table">
+        <div class="la-table-head">
+          <span>HORA</span><span>LÍNEA · DESTINO</span>
+        </div>
+        <div class="la-table-body" id="la-table-body">
+          {% for h in todas_salidas %}
+          <div class="la-row{% if forloop.first and eta_minutos is not None %} is-next{% endif %}"
+               data-empresa="{{ h.linea.empresa.slug }}">
+            <span class="la-row-time-wrap">
+              <span class="la-row-time">{{ h.hora|time:"H:i" }}</span>
+              <span class="la-row-time-sub">{% if h.direccion == "ida" %}sale Tigre{% else %}llega Tigre{% endif %}</span>
+            </span>
+            <span class="la-row-route">
+              <span class="la-dir-badge {% if h.direccion == "ida" %}is-ida{% else %}is-vuelta{% endif %}">
+                {% if h.direccion == "ida" %}↗ Ida{% else %}↙ Vuelta{% endif %}
+              </span>
+              <span class="la-line-dot-sm" style="background:{{ h.linea.empresa.color }}"></span>
+              {{ h.linea.empresa.nombre }}
+              <span class="la-arr">→</span>
+              {{ h.nombre }}
+              {% if h.condicion %}<span class="la-condicion" title="{{ h.condicion }}">*</span>{% endif %}
+              {% if h.descripcion %}<span class="la-duracion">⏱ {{ h.descripcion|cut:"Duración aprox.: " }}</span>{% endif %}
+            </span>
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- List: mobile only -->
+      <div class="la-mobile-list" id="la-mobile-list">
+        {% for h in todas_salidas %}
+        <div class="la-m-row{% if forloop.first and eta_minutos is not None %} is-next{% endif %}"
+             data-empresa="{{ h.linea.empresa.slug }}">
+          <span class="la-m-time-wrap">
+            <span class="la-m-time">{{ h.hora|time:"H:i" }}</span>
+            <span class="la-m-time-sub">{% if h.direccion == "ida" %}sale Tigre{% else %}llega Tigre{% endif %}</span>
+          </span>
+          <div class="la-m-info">
+            <div class="la-m-dest">
+              <span class="la-dir-badge {% if h.direccion == "ida" %}is-ida{% else %}is-vuelta{% endif %}">
+                {% if h.direccion == "ida" %}↗ Ida{% else %}↙ Vuelta{% endif %}
+              </span>
+              {{ h.nombre }}
+              {% if h.condicion %}<span class="la-condicion" title="{{ h.condicion }}">*</span>{% endif %}
+            </div>
+            <div class="la-m-sub">
+              {% if h.descripcion %}<span class="la-duracion">⏱ {{ h.descripcion|cut:"Duración aprox.: " }}</span>{% endif %}
+              <span class="la-line-dot-sm" style="background:{{ h.linea.empresa.color }}"></span>
+              {{ h.linea.empresa.nombre }}
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+
+      {% else %}
+      <div class="la-empty">
+        No hay más servicios hoy{% if estacion_activa %} por {{ estacion_activa.nombre }}{% endif %}.
+      </div>
+      {% endif %}
+
+    </main><!-- /la-main -->
+
+    <!-- RAIL (desktop) -->
+    <aside class="la-rail">
+      <div class="la-rail-label">// {% if vista == "semana_ida" %}PRÓXIMA SALIDA{% elif vista == "semana_vuelta" %}PRÓXIMA LLEGADA{% else %}PRÓXIMA SALIDA / LLEGADA{% endif %}</div>
+
+      {% if estacion_activa %}
+      <div class="la-next-card">
+        {% if vista != "semana_vuelta" %}
+        <div class="la-next-dir">
+          <span class="la-next-dir-label">↗ Sale de Tigre</span>
+          {% if proxima_ida %}
+          <div class="la-next-time">{{ proxima_ida.hora|time:"H:i" }}</div>
+          <div class="la-next-route">{{ proxima_ida.servicio.nombre }}</div>
+          <div class="la-next-meta">
+            <span class="la-line-dot-sm" style="background:{{ proxima_ida.servicio.linea.empresa.color }}"></span>
+            {{ proxima_ida.servicio.linea.empresa.nombre }}
+          </div>
+          {% else %}
+          <div class="la-next-empty-sm">Sin más salidas hoy.</div>
+          {% endif %}
+        </div>
+        {% endif %}
+
+        {% if vista == "hoy" %}<div class="la-next-divider"></div>{% endif %}
+
+        {% if vista != "semana_ida" %}
+        <div class="la-next-dir">
+          <span class="la-next-dir-label">↙ Llega a Tigre</span>
+          {% if proxima_vuelta %}
+          <div class="la-next-time">{{ proxima_vuelta.hora|time:"H:i" }}</div>
+          <div class="la-next-route">{{ proxima_vuelta.servicio.nombre }}</div>
+          <div class="la-next-meta">
+            <span class="la-line-dot-sm" style="background:{{ proxima_vuelta.servicio.linea.empresa.color }}"></span>
+            {{ proxima_vuelta.servicio.linea.empresa.nombre }}
+          </div>
+          {% else %}
+          <div class="la-next-empty-sm">Sin más llegadas hoy.</div>
+          {% endif %}
+        </div>
+        {% endif %}
+      </div>
+
+      {% if siguiente %}
+      <div class="la-siguiente">
+        <div>
+          <div class="la-sig-label">SIGUIENTE</div>
+          <div class="la-sig-time">{{ siguiente.hora|time:"H:i" }}</div>
+        </div>
+        <div class="la-sig-right">
+          <div class="la-sig-route">{{ siguiente.servicio.nombre }}</div>
+          <div class="la-sig-sub">{{ siguiente.servicio.linea.empresa.nombre }}</div>
+        </div>
+      </div>
+      {% endif %}
+      {% endif %}
+
+      <a href="/apps/mareas/" class="la-crosslink">
+        <div class="la-crosslink-label">// SISTEMA CHIPAP</div>
+        <div class="la-crosslink-body">
+          <span>Mareas en Tigre</span>
+          <span class="la-crosslink-cta">abrir en Mareas ↗</span>
+        </div>
+      </a>
+    </aside>
+
+  </div><!-- /la-body -->
+
+  <!-- ── Ficha técnica ──────────────────────────────────────── -->
+  <section class="la-tech" id="la-tech">
+    <span class="la-tech-eyebrow">// DETALLE TÉCNICO</span>
+    <h2 class="la-tech-title">Arquitectura e implementación</h2>
+    <p class="la-tech-intro">De 4 PDF oficiales del gobierno bonaerense a una tabla de horarios navegable: descarga, parsing y modelo de datos detrás de Lanchas.</p>
+
+    <!-- Pipeline -->
+    <div class="la-pipe-wrap">
+      <div class="la-pipe-node">
+        <span class="la-pipe-badge">pdf</span>
+        <strong>4 PDF oficiales</strong>
+        <span>gob. Buenos Aires</span>
+      </div>
+      <span class="la-pipe-arrow" aria-hidden="true">&rarr;</span>
+      <div class="la-pipe-node">
+        <span class="la-pipe-badge">sha</span>
+        <strong>Descarga</strong>
+        <span>hash SHA-256</span>
+      </div>
+      <span class="la-pipe-arrow" aria-hidden="true">&rarr;</span>
+      <div class="la-pipe-node">
+        <span class="la-pipe-badge">py</span>
+        <strong>pdfplumber</strong>
+        <span>tablas + coordenadas</span>
+      </div>
+      <span class="la-pipe-arrow" aria-hidden="true">&rarr;</span>
+      <div class="la-pipe-node">
+        <span class="la-pipe-badge">orm</span>
+        <strong>Django ORM</strong>
+        <span>Empresa&rarr;Línea&rarr;Servicio&rarr;Horario</span>
+      </div>
+      <span class="la-pipe-arrow" aria-hidden="true">&rarr;</span>
+      <div class="la-pipe-node la-pipe-node-out">
+        <span class="la-pipe-badge is-out">ui</span>
+        <strong>Template</strong>
+        <span>HTML + JS + localStorage</span>
+      </div>
+    </div>
+
+    <!-- Fuentes / parsing / arquitectura -->
+    <div class="la-fuentes">
+
+      <div class="la-detail-card la-detail-fuente">
+        <div class="la-detail-card-label">FUENTE OFICIAL</div>
+        <h3>Ministerio de Infraestructura (GBA)</h3>
+        <p class="la-detail-org">4 PDF publicados por el gobierno bonaerense, mismo motor de generación</p>
+        <div class="la-detail-url">minfra.gba.gob.ar/web/Transporte/Fluvial/<br>{% for pdf in todos_pdfs %}<a href="{{ pdf.url }}" target="_blank" rel="noopener noreferrer">{{ pdf.filename }}</a>{% if not forloop.last %} &middot; {% endif %}{% endfor %}</div>
+        <p class="la-detail-sublabel">LA APP DESCARGA</p>
+        <ul class="la-detail-list">
+          <li>Jilguero (450), Interisleña (451+452 combinada) y Delta Argentino (453)</li>
+          <li>Hash SHA-256 por archivo — combinado para el par 451/452 — para detectar cambios reales</li>
+        </ul>
+      </div>
+
+      <div class="la-detail-card la-detail-parsing">
+        <div class="la-detail-card-label">PARSING</div>
+        <h3>Un motor común, 3 parsers</h3>
+        <p class="la-detail-org">Los 3 PDF comparten layout — <span class="la-mono">BaseGobiernoParser</span> extrae, cada parser solo ajusta lo propio</p>
+        <div class="la-arch-items">
+          <div class="la-arch-item">
+            <strong>comun.py</strong>
+            <span>Bloques de tabla, dirección ida/vuelta por color de fila, condiciones por triángulos de color, notas al pie.</span>
+          </div>
+          <div class="la-arch-item">
+            <strong>jilguero.py &middot; interislena.py &middot; delta.py</strong>
+            <span>Cada uno define solo sus columnas de día (7 u 8) y correcciones puntuales de nombres.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="la-detail-card la-detail-normaliza">
+        <div class="la-detail-card-label">NORMALIZACIÓN</div>
+        <h3>Consistencia entre fuentes</h3>
+        <p class="la-detail-org">Cada ajuste sigue un criterio explícito y documentado, no una inferencia automática</p>
+        <div class="la-arch-items">
+          <div class="la-arch-item">
+            <strong>Vías equivalentes</strong>
+            <span>"Boca Arroyo Durazno" y "Boca de Arroyo Durazno" refieren al mismo lugar. Criterio: se compara el nombre en minúscula, sin artículos "de"/"del" y con espacios colapsados; si coincide con una vía ya registrada, se reutiliza en vez de duplicar.</span>
+          </div>
+          <div class="la-arch-item">
+            <strong>Correcciones puntuales por línea</strong>
+            <span>Algunos nombres de lugar requieren un ajuste de clasificación (ej. "Arroyo Espera" &rarr; "Río Espera" en la línea Jilguero). Criterio: mapa <span class="la-mono">CORRECCIONES_VIA</span> por parser, cada entrada verificada contra el documento original antes de aplicarse.</span>
+          </div>
+          <div class="la-arch-item">
+            <strong>Nombres de servicio duplicados</strong>
+            <span>Dos servicios con el mismo nombre genérico (ej. dos "Troncal") dentro de una línea. Criterio: se agrega el destino final entre paréntesis para diferenciarlos, ej. "Troncal (Paraná Miní)".</span>
+          </div>
+          <div class="la-arch-item">
+            <strong>Ramales coincidentes en horario</strong>
+            <span>Distintos servicios de una misma línea que salen a la misma hora (o un mismo servicio con varios destinos a la vez). Criterio: se agrupan por línea, dirección y hora en una sola fila, con los nombres separados por "/".</span>
+          </div>
+          <div class="la-arch-item">
+            <strong>Feriados</strong>
+            <span>Interisleña no publica una columna de feriados propia. Criterio: un feriado que cae viernes usa el horario de sábado, cualquier otro usa el de domingo. Jilguero y Delta Argentino sí tienen columna propia y la usan directamente.</span>
+          </div>
+          <div class="la-arch-item">
+            <strong>Formato de horarios</strong>
+            <span>Variantes de formato en la hora (ej. "13;30", "03: 30"). Criterio: se normalizan al formato HH:MM antes de guardar.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="la-detail-card la-detail-arch">
+        <div class="la-detail-card-label">ARQUITECTURA</div>
+        <h3>Django ORM &mdash; PostgreSQL</h3>
+        <p class="la-detail-org">Sin cache de archivos: los horarios se normalizan y persisten en modelos reales</p>
+        <div class="la-arch-items">
+          <div class="la-arch-item">
+            <strong>Empresa &rarr; Línea &rarr; Servicio &rarr; Horario</strong>
+            <span>Vías (ríos/arroyos) asociadas por M2M vía RecorridoTramo, con orden de recorrido.</span>
+          </div>
+          <div class="la-arch-item">
+            <strong>Deduplicación de vías</strong>
+            <span>Nombres casi-iguales del PDF (ej. "Boca Arroyo Durazno") se fusionan por nombre normalizado.</span>
+          </div>
+          <div class="la-arch-item">
+            <strong>ActualizacionLog</strong>
+            <span>Auditoría de cada corrida del pipeline: errores, notas y conteos por línea.</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Stack + CLI -->
+    <div class="la-stackgrid">
+
+      <div class="la-techstack-card">
+        <div class="la-detail-card-label">STACK TÉCNICO</div>
+        <h3 class="la-techstack-title">Tecnologías aplicadas</h3>
+        <div class="la-techstack">
+          <div class="la-techstack-item">
+            <div class="la-techstack-head">
+              <span class="la-techstack-dot is-a" aria-hidden="true"></span>
+              <strong>Python + Django</strong>
+            </div>
+            <p>ORM, views, service layer y management commands.</p>
+          </div>
+          <div class="la-techstack-item">
+            <div class="la-techstack-head">
+              <span class="la-techstack-dot is-b" aria-hidden="true"></span>
+              <strong>pdfplumber</strong>
+            </div>
+            <p>Extracción de tablas por coordenadas, no texto plano.</p>
+          </div>
+          <div class="la-techstack-item">
+            <div class="la-techstack-head">
+              <span class="la-techstack-dot is-c" aria-hidden="true"></span>
+              <strong>PostgreSQL</strong>
+            </div>
+            <p>Mismo motor en dev y prod, vía DATABASE_URL.</p>
+          </div>
+          <div class="la-techstack-item">
+            <div class="la-techstack-head">
+              <span class="la-techstack-dot is-a" aria-hidden="true"></span>
+              <strong>Vanilla JS</strong>
+            </div>
+            <p>Acordeón de líneas, buscador y filtros, sin dependencias.</p>
+          </div>
+          <div class="la-techstack-item">
+            <div class="la-techstack-head">
+              <span class="la-techstack-dot is-b" aria-hidden="true"></span>
+              <strong>localStorage</strong>
+            </div>
+            <p>Favoritos 100% client-side, sin cuentas ni sesión.</p>
+          </div>
+          <div class="la-techstack-item">
+            <div class="la-techstack-head">
+              <span class="la-techstack-dot is-c" aria-hidden="true"></span>
+              <strong>CSS custom properties</strong>
+            </div>
+            <p>Temas Día / Noche en tiempo real.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="la-cli-card">
+        <div class="la-cli-eyebrow">HERRAMIENTAS CLI</div>
+        <h3 class="la-cli-title">Management commands</h3>
+        <p class="la-cli-intro">Actualización y validación del catálogo sin depender de la interfaz web.</p>
+        <div class="la-cmd-list">
+          <div class="la-cmd-item">
+            <code>lanchas_inicializar</code>
+            <span>Crea Empresa/Línea en la base — se corre una sola vez.</span>
+          </div>
+          <div class="la-cmd-item">
+            <code>lanchas_descargar_pdfs [--linea N]</code>
+            <span>Descarga los PDF oficiales del gobierno.</span>
+          </div>
+          <div class="la-cmd-item">
+            <code>lanchas_parsear_pdfs [--linea N] [--forzar]</code>
+            <span>Parsea y carga los horarios en la base.</span>
+          </div>
+          <div class="la-cmd-item">
+            <code>lanchas_actualizar [--linea N] [--forzar]</code>
+            <span>Descarga + parseo en un solo paso — cron semanal.</span>
+          </div>
+          <div class="la-cmd-item">
+            <code>lanchas_validar</code>
+            <span>Chequeo de integridad del catálogo cargado.</span>
+          </div>
+          <div class="la-cmd-item">
+            <code>lanchas_listar [--empresa] [--via]</code>
+            <span>Exploración rápida de los datos cargados.</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </section>
+
+</div><!-- /la-app -->
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/lanchas.js' %}?v=20260707e"></script>
+{% endblock %}

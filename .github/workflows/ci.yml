@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Preparar .env
+        run: cp .env.example .env
+
+      - name: Construir y levantar los servicios (docker compose)
+        run: docker compose up -d --build
+
+      - name: Instalar dependencias de test dentro del contenedor
+        run: docker compose exec -T web pip install -r requirements_lanchas_dev.txt
+
+      - name: Correr tests con coverage
+        run: |
+          docker compose exec -T web \
+            pytest -v -m "not smoke" --cov=lanchas.services.parsers --cov-report=term-missing --cov-report=xml
+
+      - name: Copiar reporte de coverage fuera del contenedor
+        if: always()
+        run: docker compose cp web:/app/coverage.xml ./coverage.xml
+
+      - name: Publicar reporte de coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.xml
+
+      - name: Logs de los servicios (si algo falló)
+        if: failure()
+        run: docker compose logs
+
+      - name: Bajar los servicios
+        if: always()
+        run: docker compose down -v

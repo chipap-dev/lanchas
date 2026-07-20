@@ -1,0 +1,27 @@
+name: Smoke test - fuentes reales
+
+on:
+  schedule:
+    # Todos los lunes a las 09:00 UTC.
+    - cron: "0 9 * * 1"
+  workflow_dispatch: {}
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Instalar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Instalar dependencias
+        run: pip install -r requirements_lanchas_dev.txt
+
+      - name: Correr smoke tests contra las fuentes reales
+        env:
+          DATABASE_URL: sqlite:///:memory:
+        run: pytest -v -m smoke
