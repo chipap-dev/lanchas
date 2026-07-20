@@ -1,4 +1,4 @@
-# Lanchas — Horarios del Delta del Tigre
+# Lanchas - Horarios del Delta del Tigre
 
 [![CI](https://github.com/chipap-dev/lanchas/actions/workflows/ci.yml/badge.svg)](https://github.com/chipap-dev/lanchas/actions/workflows/ci.yml)
 
@@ -14,7 +14,7 @@ them as a searchable, mobile-friendly timetable.
 
 - Downloads and parses the official government PDF schedules of 3 lines
   (Interisleña 451/452, Jilguero 450, Delta Argentino 453) with `pdfplumber`
-  — table extraction, color-coded direction detection, footnote-condition
+  - table extraction, color-coded direction detection, footnote-condition
   matching, not plain-text scraping
 - Normalizes everything into a relational model: companies → lines →
   services → stops (rivers/streams) → timetable rows
@@ -36,7 +36,7 @@ docker compose up --build
 ```
 
 Open [http://localhost:8000](http://localhost:8000). The first boot runs
-migrations and loads `fixtures/lanchas_seed.json` — real schedule data
+migrations and loads `fixtures/lanchas_seed.json` - real schedule data
 already parsed from the official PDFs, so there are no extra steps.
 
 Django admin is available at `/admin/` (create a user first):
@@ -65,7 +65,7 @@ docker compose exec web python manage_lanchas.py lanchas_actualizar
 ```
 
 This downloads the current PDFs from `minfra.gba.gob.ar`, parses them, and
-upserts the schedule (idempotent — re-running only applies real diffs).
+upserts the schedule (idempotent - re-running only applies real diffs).
 
 ---
 
@@ -102,7 +102,7 @@ them changed format in a way the parser can't handle.
 
 ## Architecture
 
-Real ORM, real migrations, real Postgres — unlike the sibling
+Real ORM, real migrations, real Postgres - unlike the sibling
 [luthier](https://github.com/chipap-dev/luthier) and
 [mareas](https://github.com/chipap-dev/mareas) repos, this app's whole
 purpose is normalizing messy source data, so a database is the point.
