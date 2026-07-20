@@ -25,7 +25,7 @@ jobs:
       - name: Correr tests con coverage
         run: |
           docker compose exec -T web \
-            pytest -v -m "not smoke" --cov=lanchas.services.parsers --cov-report=term-missing --cov-report=xml
+            python -m pytest -v -m "not smoke" --cov=lanchas.services.parsers --cov-report=term-missing --cov-report=xml
 
       - name: Copiar reporte de coverage fuera del contenedor
         if: always()
