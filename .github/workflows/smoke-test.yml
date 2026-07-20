@@ -23,5 +23,5 @@ jobs:
 
       - name: Correr smoke tests contra las fuentes reales
         env:
-          DATABASE_URL: sqlite:///:memory:
+          DATABASE_URL: "sqlite:///:memory:"
         run: pytest -v -m smoke
