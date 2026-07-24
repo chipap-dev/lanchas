@@ -33,7 +33,7 @@ class Command(BaseCommand):
                 self._warn(f"    {s}")
             advertencias += 1
         else:
-            self.stdout.write("  OK — todos los servicios tienen horarios")
+            self.stdout.write("  OK - todos los servicios tienen horarios")
 
         # Servicios activos sin recorrido
         sin_recorrido = Servicio.objects.filter(activo=True, tramos__isnull=True).distinct()
@@ -43,7 +43,7 @@ class Command(BaseCommand):
                 self._warn(f"    {s}")
             advertencias += 1
         else:
-            self.stdout.write("  OK — todos los servicios tienen recorrido")
+            self.stdout.write("  OK - todos los servicios tienen recorrido")
 
         # PDFs en disco
         pdf_dir = get_pdf_dir()
@@ -70,7 +70,7 @@ class Command(BaseCommand):
                 estado = "OK" if log.exito else "ERROR"
                 self.stdout.write(
                     f"  Línea {linea.numero}: {log.fecha:%Y-%m-%d %H:%M} [{estado}]"
-                    f" — +{log.horarios_agregados} / -{log.horarios_eliminados}"
+                    f" - +{log.horarios_agregados} / -{log.horarios_eliminados}"
                 )
             else:
                 self._warn(f"  Línea {linea.numero}: sin actualizaciones registradas")

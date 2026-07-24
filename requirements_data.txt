@@ -1,0 +1,5 @@
+# Capa de datos dimensional (BigQuery + dbt). No requerido para correr la
+# app Django - separado de requirements_lanchas.txt a propósito para no
+# agregar peso a un deploy que solo sirve horarios desde Postgres.
+google-cloud-bigquery>=3.25,<4.0
+dbt-bigquery>=1.8,<2.0

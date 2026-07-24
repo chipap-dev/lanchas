@@ -1,6 +1,6 @@
 """
 Crea los registros iniciales de Empresa y Linea en la base de datos.
-Idempotente — seguro ejecutar múltiples veces.
+Idempotente - seguro ejecutar múltiples veces.
 
 Ejecutar una vez antes del primer lanchas_descargar_pdfs:
     python manage.py lanchas_inicializar
@@ -18,5 +18,5 @@ class Command(BaseCommand):
         inicializar_catalogo()
         for cfg in LINEAS_CONFIG:
             for l in cfg["lineas"]:
-                self.stdout.write(f"  [{cfg['empresa_slug']}] Línea {l['numero']} — {l['pdf_url']}")
+                self.stdout.write(f"  [{cfg['empresa_slug']}] Línea {l['numero']} - {l['pdf_url']}")
         self.stdout.write("Catálogo listo.")

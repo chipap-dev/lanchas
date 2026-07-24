@@ -61,7 +61,7 @@ def get_lanchas_context(
             todos_pdfs.append({"filename": linea.pdf_filename_2, "url": linea.pdf_url_2})
 
     # Vías vigentes para esta vista (todas, o acotadas si hay una línea
-    # elegida) — de acá sale la vía activa y las chips del tablet.
+    # elegida) - de acá sale la vía activa y las chips del tablet.
     vias = vias_todas if not empresa_activa else next(
         (vs for e, vs in empresas_con_vias if e == empresa_activa), vias_todas
     )
@@ -144,7 +144,7 @@ def get_lanchas_context(
     siguiente = futuras[1] if len(futuras) > 1 else None
 
     contexto.update({
-        # Unificado (ver unificar_ramales) solo para esta tabla — proxima/
+        # Unificado (ver unificar_ramales) solo para esta tabla - proxima/
         # siguiente siguen usando el Horario "crudo" tal cual, para no
         # complicar los widgets de arriba con filas fusionadas.
         "todas_salidas": unificar_ramales(todas_salidas),

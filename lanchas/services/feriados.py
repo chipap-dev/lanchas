@@ -18,11 +18,11 @@ def resolver_tipo_dia(linea: Linea, fecha: date, _es_feriado: bool | None = None
     Devuelve el tipo_dia ('lunes'…'domingo' o 'feriado') a consultar para
     una línea y fecha, aplicando la lógica de feriados por empresa.
 
-    Interisleña (451, 452) — sin columna de feriados en los PDFs:
+    Interisleña (451, 452) - sin columna de feriados en los PDFs:
         · feriado que cae viernes → usa horario 'sabado'
         · cualquier otro feriado  → usa horario 'domingo'
 
-    Jilguero (450) y Delta Argentino (453) — tienen columna propia:
+    Jilguero (450) y Delta Argentino (453) - tienen columna propia:
         · cualquier feriado → 'feriado'
 
     Pasar _es_feriado=True/False para evitar la consulta a DB cuando ya
@@ -43,13 +43,13 @@ def resolver_tipo_dia(linea: Linea, fecha: date, _es_feriado: bool | None = None
 def sincronizar_feriados(anios: list[int] | None = None) -> int:
     """
     Carga en `Feriado` el calendario oficial de Argentina (paquete
-    `holidays`: feriados fijos, móviles — Carnaval, Semana Santa — y "con
+    `holidays`: feriados fijos, móviles (Carnaval, Semana Santa) y "con
     fines turísticos" ya decretados) para los años pedidos. Por defecto,
     año actual y siguiente, para tener margen sin depender de que alguien
     lo corra a fin de año. Devuelve la cantidad de feriados nuevos.
 
     No hay forma automática de saber si el gobierno corrigió el nombre de
-    un feriado ya cargado, así que solo agrega fechas nuevas — no pisa
+    un feriado ya cargado, así que solo agrega fechas nuevas - no pisa
     registros existentes.
     """
     if anios is None:

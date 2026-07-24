@@ -1,7 +1,7 @@
 """
 Lógica compartida entre parsers de PDFs de horarios de lanchas generados por
 el mismo motor/plantilla del gobierno (verificado sobre Jilguero línea 450 e
-Interisleña líneas 451/452 — layouts casi idénticos, con pequeñas diferencias
+Interisleña líneas 451/452 - layouts casi idénticos, con pequeñas diferencias
 de columnas que cada subclase ajusta vía `DIAS_COLUMNAS`).
 
 Puntos no obvios (verificados manualmente sobre los PDFs reales):
@@ -16,7 +16,7 @@ Puntos no obvios (verificados manualmente sobre los PDFs reales):
   IDA y VUELTA tienen distinta cantidad de filas). Por eso NO hay que
   inferir el límite IDA/VUELTA por posición de la etiqueta: cada fila tiene
   un rectángulo de fondo (fill) cuyo color es constante dentro del bloque
-  IDA y cambia exactamente en el límite real con VUELTA — ese color es la
+  IDA y cambia exactamente en el límite real con VUELTA - ese color es la
   señal confiable para clasificar la dirección fila por fila (ver
   `_direccion_por_color`); lugar de salida/llegada sí se reconstruye con
   forward+backward fill, pero sin cruzar ese límite ya resuelto.
@@ -26,10 +26,10 @@ Puntos no obvios (verificados manualmente sobre los PDFs reales):
   (columna 4+, no la fila entera, porque columnas 0-3 tienen celdas altas
   fusionadas) y re-extrayendo texto con `x_tolerance` chico. Si el recorrido
   ocupa 2 líneas visuales, la etiqueta "RECORRIDO"/"DURACION..." puede quedar
-  en el medio del texto re-extraído (no solo al principio) — se remueve con
+  en el medio del texto re-extraído (no solo al principio) - se remueve con
   `\bRECORRIDO\b` (regex sin ancla `^`).
 - Las condiciones por fila (nota al pie) se marcan con un pequeño triángulo
-  (`page.curves`) delante del horario y delante de la nota — no hay que
+  (`page.curves`) delante del horario y delante de la nota - no hay que
   interpretar el color, solo usarlo para emparejar (mismo color = misma
   fila <-> misma nota). El color del marcador NO es siempre "puro"/primario
   (Interisleña usa verde, casi-negro, cian según el PDF) así que no sirve
@@ -38,7 +38,7 @@ Puntos no obvios (verificados manualmente sobre los PDFs reales):
   página (x0≈50-60), bien afuera de cualquier sello/logo decorativo que
   algunos PDFs (Interisleña) tienen cerca del pie de página, hecho de
   cientos de curvas con colores "sucios" (ej. (0.754, 0.098, 0.223)) pero
-  siempre pegadas al margen derecho — `_MARGEN_IZQUIERDO_MARCADOR` filtra
+  siempre pegadas al margen derecho - `_MARGEN_IZQUIERDO_MARCADOR` filtra
   por esa posición, no por color.
 """
 
@@ -85,7 +85,7 @@ _RE_SEPARADOR_TRAMO = re.compile(
 )
 
 # Color de fondo (fill) constante para todas las filas de un mismo bloque
-# IDA/VUELTA — ver nota en _direccion_por_color. Verificado igual en los
+# IDA/VUELTA - ver nota en _direccion_por_color. Verificado igual en los
 # PDFs de Jilguero e Interisleña (mismo motor de generación).
 _COLOR_FONDO_IDA = (0.004, 0.086, 0.125)
 _COLOR_FONDO_VUELTA = (0.074, 0.012, 0.141)
@@ -109,7 +109,7 @@ class BaseGobiernoParser(BaseParser):
 
     # Correcciones puntuales a nombres de vía que el PDF mismo escribe mal
     # (ej. Jilguero línea 450 mete "Espera" en la lista de "Arroyos" del
-    # recorrido, pero es un río — confirmado a mano con el usuario). Se van
+    # recorrido, pero es un río - confirmado a mano con el usuario). Se van
     # a ir sumando casuística por casuística; cada subclase define la suya.
     CORRECCIONES_VIA: dict = {}
 
@@ -139,7 +139,7 @@ class BaseGobiernoParser(BaseParser):
 
     def _desambiguar_nombres(self, servicios: list[dict]) -> None:
         """
-        `Servicio` se carga por (linea, nombre) — si dos bloques (del mismo
+        `Servicio` se carga por (linea, nombre) - si dos bloques (del mismo
         PDF o, al combinar varios archivos en una sola línea, de PDFs
         distintos) resuelven el mismo nombre genérico (ej. dos "TRONCAL", o
         dos "FRACCIONADO" sin número dentro del mismo PDF), uno pisaría al
@@ -158,7 +158,7 @@ class BaseGobiernoParser(BaseParser):
                 if destino:
                     s["servicio_nombre"] = f"{nombre} ({destino})"
                     self.notas.append(
-                        f"Nombre de servicio duplicado ('{nombre}') — renombrado a "
+                        f"Nombre de servicio duplicado ('{nombre}') - renombrado a "
                         f"'{s['servicio_nombre']}' usando el destino para no pisar datos."
                     )
 
@@ -179,7 +179,7 @@ class BaseGobiernoParser(BaseParser):
                     # entre dos bloques de servicio visualmente separados y
                     # los devuelven como una sola `Table` con el encabezado
                     # ("CANT. SERV." / "TIPO DE SERVICIO" / ...) repetido en
-                    # el medio — hay que partirla en sub-bloques donde
+                    # el medio - hay que partirla en sub-bloques donde
                     # reaparece ese encabezado, si no el texto de un bloque
                     # se mezcla con el del otro.
                     for inicio, fin in self._bloques_de_tabla(filas):
@@ -188,7 +188,7 @@ class BaseGobiernoParser(BaseParser):
                         try:
                             servicio = self._parse_bloque(page, sub_filas, sub_meta, condiciones_pagina)
                         except Exception as exc:
-                            msg = f"{pdf_path.name} página {num_pagina}: error al parsear bloque de servicio — {exc}"
+                            msg = f"{pdf_path.name} página {num_pagina}: error al parsear bloque de servicio - {exc}"
                             logger.error(msg)
                             self.errores.append(msg)
                             continue
@@ -267,7 +267,7 @@ class BaseGobiernoParser(BaseParser):
         principal = next(iter(lugares_llegada), "")
         nombre = f"Ramal Tigre - {principal}".strip(" -")
         self.notas.append(
-            f"Servicio sin número/tipo impreso en el PDF (destino: '{principal}') — "
+            f"Servicio sin número/tipo impreso en el PDF (destino: '{principal}') - "
             f"asignado nombre='{nombre}', tipo='ramal' por defecto. Verificar manualmente."
         )
         return nombre, "ramal"
@@ -310,7 +310,7 @@ class BaseGobiernoParser(BaseParser):
         # fila y "Caraguatá" en la siguiente, cada una con su propia hora:
         # no son horarios distintos, es el mismo lugar con su nombre partido
         # en dos filas). Se reconstruye el texto completo y se lo deja en
-        # las dos filas — CORRECCIONES_VIA/CORRECCIONES_VIA_MULTIPLE deciden
+        # las dos filas - CORRECCIONES_VIA/CORRECCIONES_VIA_MULTIPLE deciden
         # después si el resultado es un solo lugar limpio o dos lugares
         # reales a preservar por separado, sin perder el que quedó en la
         # fila siguiente.
@@ -349,13 +349,13 @@ class BaseGobiernoParser(BaseParser):
                 indice = 5 + col_idx
                 # Algunas tablas (Delta) a veces ni siquiera detectan la
                 # columna FERIADOS como celda propia (desaparece del todo,
-                # no solo queda vacía) — tratarla como sin dato en vez de
+                # no solo queda vacía) - tratarla como sin dato en vez de
                 # reventar con IndexError.
                 celda_cruda = fila[indice] if indice < len(fila) else ""
                 celda_cruda = celda_cruda or ""
                 if "\n" in celda_cruda:
                     # Algunas tablas no subdividen todas las columnas de día
-                    # por igual — la mayoría de las filas quedan bien
+                    # por igual - la mayoría de las filas quedan bien
                     # repartidas, pero alguna columna puntual junta varios
                     # horarios (de filas/direcciones distintas) en una sola
                     # celda. No hay forma confiable de saber a qué fila
@@ -366,7 +366,7 @@ class BaseGobiernoParser(BaseParser):
                     if len(lineas) > 1:
                         self.notas.append(
                             f"Fila {i}, columna '{dia}': la celda traía varios horarios "
-                            f"apilados ({lineas}) — se tomó solo '{valor}', revisar "
+                            f"apilados ({lineas}) - se tomó solo '{valor}', revisar "
                             "manualmente en el PDF."
                         )
                 else:
@@ -395,7 +395,7 @@ class BaseGobiernoParser(BaseParser):
         for f in filas_agrupadas:
             condicion = condiciones_por_fila.get(f["fila_idx"], "")
             # El "destino" de cada fila es siempre el extremo lejano de Tigre
-            # (llegada en ida, salida en vuelta) — se guarda siempre, no solo
+            # (llegada en ida, salida en vuelta) - se guarda siempre, no solo
             # cuando el servicio se bifurca, para poder ubicar horarios por
             # cualquier lugar puntual del recorrido (ej. un muelle final).
             lugar = f["lugar_llegada"] if f["direccion"] == "ida" else f["lugar_salida"]
@@ -421,7 +421,7 @@ class BaseGobiernoParser(BaseParser):
     # izquierdo de la página (verificado en Jilguero e Interisleña: x0≈50-60).
     # No se puede filtrar por "color puro": algunos PDFs (Interisleña, bloques
     # con varias notas) usan colores de marcador que no son primarios (ej.
-    # verde, casi negro, cian) — lo que sí es constante es la posición, muy
+    # verde, casi negro, cian) - lo que sí es constante es la posición, muy
     # a la izquierda, bien afuera de sellos/logos decorativos que algunos
     # PDFs tienen cerca del pie de página (esos quedan pegados a la derecha).
     _MARGEN_IZQUIERDO_MARCADOR = 150
@@ -476,8 +476,8 @@ class BaseGobiernoParser(BaseParser):
         evitando arrastrar las columnas de etiqueta 0-3 que suelen tener
         celdas altas fusionadas con filas vecinas). El borde derecho siempre
         se extiende hasta el borde de la página (no el de la celda ni el de
-        la tabla, que en algunas tablas —ej. Interisleña, bloques sin
-        columna FERIADOS— quedan más angostos que el texto real y cortan
+        la tabla, que en algunas tablas (ej. Interisleña, bloques sin
+        columna FERIADOS) quedan más angostos que el texto real y cortan
         palabras al final de la línea, ej. "Gaviota" -> "Gav")."""
         celda = next((c for c in fila_meta.cells[4:] if c is not None), None)
         if celda is None:
@@ -499,7 +499,7 @@ class BaseGobiernoParser(BaseParser):
         la posición de la etiqueta "IDA"/"VUELTA": esa etiqueta se ancla al
         centro vertical del bloque completo, que no coincide con ninguna
         fila real cuando IDA y VUELTA tienen distinta cantidad de filas
-        (ej. Río Espera en Jilguero: IDA=6 filas, VUELTA=8 — la etiqueta
+        (ej. Río Espera en Jilguero: IDA=6 filas, VUELTA=8 - la etiqueta
         "IDA" cae en la 4ª fila y contamina por posición las primeras filas
         de VUELTA si se infiere por cercanía). El relleno, en cambio, es
         constante para todas las filas de un mismo bloque y cambia justo en
@@ -581,7 +581,7 @@ class BaseGobiernoParser(BaseParser):
         if len(destinos_norm) == 1:
             # Servicio no bifurcado: el destino final es un lugar real y
             # concreto (muelle, escuela, puerto...) aunque no tenga forma de
-            # "Río/Arroyo/Canal" — se agrega como último tramo, con el texto
+            # "Río/Arroyo/Canal" - se agrega como último tramo, con el texto
             # de la columna "Lugar salida/llegada" (más confiable que el
             # texto libre y a veces inconsistente del recorrido).
             vias.append(next(iter(lugares_llegada)))
@@ -599,7 +599,7 @@ class BaseGobiernoParser(BaseParser):
         for patron, tipo in TIPO_MAP:
             if patron.match(texto):
                 return tipo
-        self.notas.append(f"Tipo de servicio no reconocido: '{texto}' — asignado 'ramal' por defecto.")
+        self.notas.append(f"Tipo de servicio no reconocido: '{texto}' - asignado 'ramal' por defecto.")
         return "ramal"
 
     @staticmethod

@@ -11,7 +11,7 @@ class Linea(models.Model):
     pdf_url = models.URLField()
     pdf_filename = models.CharField(max_length=100)
     # Interisleña publica sus servicios en dos PDF (líneas 451 y 452) que en
-    # esta app se tratan como una sola Línea/empresa combinada — estos dos
+    # esta app se tratan como una sola Línea/empresa combinada - estos dos
     # campos opcionales permiten un segundo archivo fuente. Si están vacíos,
     # la línea tiene un solo PDF (caso normal).
     pdf_url_2 = models.URLField(blank=True)

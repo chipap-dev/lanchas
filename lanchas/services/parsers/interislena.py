@@ -1,20 +1,20 @@
 """
-Parser para Interisleña S.A.C.I. — combina los PDF de las líneas 451 y 452
+Parser para Interisleña S.A.C.I. - combina los PDF de las líneas 451 y 452
 en un solo conjunto de servicios (se tratan como una única Línea en la app,
 no dos, por decisión del usuario: la empresa opera ambas rutas como un todo).
 
 Toda la lógica de extracción es compartida con Jilguero (mismo motor de
-generación de PDF) — ver `comun.BaseGobiernoParser`. Particularidades de
+generación de PDF) - ver `comun.BaseGobiernoParser`. Particularidades de
 Interisleña frente a Jilguero:
 - Sin columna FERIADOS real: la tabla tiene esa columna en el encabezado
   pero cada fila solo trae una nota fija "(*1) Ver aclaración debajo del
   cuadro" (no horarios), y el pie de página explica la regla real:
   "Si el feriado cae lunes, se repiten los horarios del domingo" /
-  "Si cae viernes, se repiten los de sábado" — exactamente lo que ya hace
+  "Si cae viernes, se repiten los de sábado" - exactamente lo que ya hace
   `services.feriados.resolver_tipo_dia()` para esta empresa. Por eso acá
   solo se leen 7 columnas de día (no se crea tipo_dia='feriado').
 - El PDF de Interisleña tiene un sello/logo decorativo hecho de cientos de
-  curvas de color "sucio" cerca del pie — `_es_color_marcador` (en
+  curvas de color "sucio" cerca del pie - `_es_color_marcador` (en
   BaseGobiernoParser) ya filtra eso y solo usa curvas de color puro como
   marcador real de condición.
 """
@@ -31,7 +31,7 @@ class InterislenaParser(BaseGobiernoParser):
 
     # El recorrido del Ramal 4 dice "Arroyo Espera", pero es el mismo Río
     # Espera al que llega Jilguero (por otra rama del recorrido, vía Río
-    # Sarmiento en vez de Río Carapachay) — confirmado con el usuario
+    # Sarmiento en vez de Río Carapachay) - confirmado con el usuario
     # 06/07/2026. Se apunta a la misma Via que ya usa JilgueroParser.
     CORRECCIONES_VIA = {
         "Arroyo Espera": "Río Espera",
@@ -39,12 +39,12 @@ class InterislenaParser(BaseGobiernoParser):
 
     # "Ramal 1": el destino queda partido en dos filas por el salto de
     # línea del PDF ("Arroyo Arroyón y" + "Fondeadero" suelto en la fila
-    # siguiente, cada una con su propia hora) — son dos lugares reales
+    # siguiente, cada una con su propia hora) - son dos lugares reales
     # (el arroyo y un fondeadero/amarradero aparte), no un lugar solo con
     # nombre largo, así que se preservan los dos por separado en vez de
     # quedarse con uno. Confirmado con el usuario 06/07/2026.
     #
-    # "Ramal 2": mismo patrón, en una sola fila completa (sin partir) —
+    # "Ramal 2": mismo patrón, en una sola fila completa (sin partir) -
     # "Recreo Yacaré y Cangrejo" son dos recreos distintos.
     #
     # "Troncal (Canal 5 / Carabelas / Arroyo Grande)": el recorrido ya
@@ -58,10 +58,10 @@ class InterislenaParser(BaseGobiernoParser):
     # texto completo en una sola fila ("...x Arroyo Antequera o hasta Arroyo
     # Estudiante"). "Arroyo Estudiante" ya es una vía propia por el
     # recorrido de otros servicios de esta misma línea, así que no hace
-    # falta repetirlo acá — los dos lugares de este servicio son Paraná de
+    # falta repetirlo acá - los dos lugares de este servicio son Paraná de
     # las Palmas y Arroyo Antequera.
     #
-    # "Ramal 4": mismo patrón — ida parte "Arroyo Cruz" + "Colorada - Casa
+    # "Ramal 4": mismo patrón - ida parte "Arroyo Cruz" + "Colorada - Casa
     # Bellini" en dos filas con horas distintas; la vuelta trae el texto
     # completo ("Arroyo Cruz Colorada - Casa Bellini"). Son dos lugares
     # reales (el arroyo y una casa/embarcadero particular).

@@ -46,7 +46,7 @@ class Command(BaseCommand):
                 estado_log = f"actualizado {log.fecha:%Y-%m-%d}" if log else "sin datos"
                 n_horarios = Horario.objects.filter(servicio__linea=linea).count()
                 self.stdout.write(
-                    f"\n  Línea {linea.numero} — {estado_log} — {n_horarios} horarios"
+                    f"\n  Línea {linea.numero} - {estado_log} - {n_horarios} horarios"
                 )
 
                 for servicio in linea.servicios.filter(activo=True).order_by("orden"):
@@ -68,7 +68,7 @@ class Command(BaseCommand):
             vias_disponibles = Via.objects.order_by("nombre").values_list("slug", "nombre")
             self.stdout.write("Vías disponibles:")
             for slug, nombre in vias_disponibles:
-                self.stdout.write(f"  {slug} — {nombre}")
+                self.stdout.write(f"  {slug} - {nombre}")
             return
 
         self.stdout.write(f"\nServicios que pasan por: {via.nombre}")
@@ -76,6 +76,6 @@ class Command(BaseCommand):
         for s in servicios:
             n = Horario.objects.filter(servicio=s).count()
             self.stdout.write(
-                f"  Línea {s.linea.numero} ({s.linea.empresa.nombre}) — "
-                f"{s.nombre} [{s.tipo}] — {n} horarios"
+                f"  Línea {s.linea.numero} ({s.linea.empresa.nombre}) - "
+                f"{s.nombre} [{s.tipo}] - {n} horarios"
             )

@@ -36,7 +36,7 @@ LINEAS_CONFIG = [
             {
                 # Interisleña publica sus servicios en dos PDF (451 y 452);
                 # se tratan como una sola Línea combinada, no dos líneas
-                # separadas — pdf_url/pdf_filename son el 451, pdf_url_2/
+                # separadas - pdf_url/pdf_filename son el 451, pdf_url_2/
                 # pdf_filename_2 el 452.
                 "numero": "451/452",
                 "pdf_url": "https://www.minfra.gba.gob.ar/web/Transporte/Fluvial/LINEA_451.pdf",
@@ -123,7 +123,7 @@ def cargar_servicios(
         for orden, srv_data in enumerate(servicios_data):
             try:
                 # Savepoint por servicio: si uno falla, Postgres deja la
-                # transacción externa inutilizable hasta hacer rollback —
+                # transacción externa inutilizable hasta hacer rollback -
                 # sin este atomic() anidado, el primer error arrastra a
                 # todos los servicios siguientes (y al ActualizacionLog
                 # final) con el mismo error genérico de transacción rota,

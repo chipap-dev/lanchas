@@ -1,0 +1,133 @@
+version: 2
+
+models:
+  - name: dim_empresa
+    description: Una fila por empresa (Interisleña, Jilguero, Delta Argentino).
+    columns:
+      - name: empresa_id
+        description: Surrogate key (row_number, no persiste entre corridas full-refresh).
+        tests:
+          - not_null
+          - unique
+      - name: empresa_slug
+        tests:
+          - not_null
+          - unique
+      - name: empresa_nombre
+        tests:
+          - not_null
+
+  - name: dim_linea
+    description: Una fila por línea (numero oficial) dentro de su empresa.
+    columns:
+      - name: linea_id
+        tests:
+          - not_null
+          - unique
+      - name: empresa_id
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_empresa')
+                field: empresa_id
+      - name: linea_numero
+        tests:
+          - not_null
+
+  - name: dim_via
+    description: >
+      Una fila por vía (río, arroyo o destino puntual) que aparece en
+      algún recorrido - ver Via en lanchas/models/via.py. No existe un
+      atributo "río" separado del nombre: Via.nombre ya lo incluye
+      (ej. "Río Luján", "Arroyo Angostura", "Puerto Campana").
+    columns:
+      - name: via_id
+        tests:
+          - not_null
+          - unique
+      - name: via_nombre
+        tests:
+          - not_null
+          - unique
+
+  - name: dim_tipo_dia
+    description: >
+      Una fila por valor de Horario.tipo_dia. No modela un "tipo de día"
+      agregado (hábil/fin de semana/feriado): son los 7 días de la
+      semana más 'feriado' tal cual vienen guardados (ver
+      lanchas/models/horario.py TIPO_DIA_CHOICES).
+    columns:
+      - name: tipo_dia_id
+        tests:
+          - not_null
+          - unique
+      - name: tipo_dia
+        tests:
+          - not_null
+          - unique
+          - accepted_values:
+              arguments:
+                values:
+                  - lunes
+                  - martes
+                  - miercoles
+                  - jueves
+                  - viernes
+                  - sabado
+                  - domingo
+                  - feriado
+
+  - name: fact_horario
+    description: >
+      Una fila por (horario, vía): un horario cuyo servicio recorre N
+      vías genera N filas (ver
+      lanchas/services/bigquery_export.py::_vias_del_horario). No hay
+      surrogate key propia - el grano lo definen las FKs + hora +
+      dirección.
+    columns:
+      - name: linea_id
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_linea')
+                field: linea_id
+      - name: via_id
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_via')
+                field: via_id
+      - name: tipo_dia_id
+        tests:
+          - not_null
+          - relationships:
+              arguments:
+                to: ref('dim_tipo_dia')
+                field: tipo_dia_id
+      - name: servicio_nombre
+        tests:
+          - not_null
+      - name: servicio_tipo
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - troncal
+                  - ramal
+                  - fraccionado
+                  - desdoblamiento
+      - name: direccion
+        tests:
+          - not_null
+          - accepted_values:
+              arguments:
+                values:
+                  - ida
+                  - vuelta
+      - name: hora
+        tests:
+          - not_null

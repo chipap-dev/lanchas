@@ -37,10 +37,10 @@ class Command(BaseCommand):
             if r["ok"]:
                 estado = "modificado" if r["modificado"] else "sin cambios"
                 self.stdout.write(
-                    f"Línea {r['linea'].numero}: {estado} — {r['bytes']:,} bytes"
+                    f"Línea {r['linea'].numero}: {estado} - {r['bytes']:,} bytes"
                 )
             else:
-                self.stderr.write(f"Línea {r['linea'].numero}: ERROR — {r['error']}")
+                self.stderr.write(f"Línea {r['linea'].numero}: ERROR - {r['error']}")
 
         errores = [r for r in resultados if not r["ok"]]
         if errores:

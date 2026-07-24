@@ -1,0 +1,55 @@
+version: 2
+
+sources:
+  - name: lanchas_raw
+    database: "{{ env_var('GCP_PROJECT_ID', 'chipap') }}"
+    schema: "{{ env_var('GCP_DATASET_RAW', 'lanchas_raw') }}"
+    tables:
+      - name: horarios
+        description: >
+          Horarios de lanchas de las 3 empresas (Interisleña, Jilguero,
+          Delta Argentino), leídos de Postgres vía ORM y subidos
+          full-refresh (WRITE_TRUNCATE, sin histórico) por el management
+          command `lanchas_cargar_bigquery`. Grano: una fila por
+          (horario, vía) - un horario cuyo servicio recorre N vías
+          genera N filas (ver `lanchas/services/bigquery_export.py`).
+        columns:
+          - name: empresa_nombre
+            description: Nombre comercial de la empresa (Empresa.nombre).
+          - name: empresa_slug
+            description: Slug único de la empresa (Empresa.slug).
+          - name: linea_numero
+            description: Número de línea oficial (Linea.numero), ej. '450', '451/452'.
+          - name: servicio_nombre
+            description: Nombre del servicio dentro de la línea (Servicio.nombre), ej. 'Troncal', 'Ramal 3'.
+          - name: servicio_tipo
+            description: "Categoría del servicio: troncal, ramal, fraccionado o desdoblamiento (Servicio.tipo)."
+          - name: via_nombre
+            description: >
+              Nombre de la vía relevante para esta fila (Via.nombre): un
+              tramo del recorrido del servicio, o el destino puntual de
+              un horario bifurcado que no es tramo propio.
+          - name: tipo_dia
+            description: >
+              Copia cruda de Horario.tipo_dia ('lunes'…'domingo' o
+              'feriado'). No es un campo agregado tipo "hábil/fin de
+              semana/feriado": Interisleña resuelve sus feriados en
+              tiempo de consulta reasignándolos a 'sabado'/'domingo'
+              (services/feriados.resolver_tipo_dia), sin guardar una fila
+              propia - por eso 'feriado' solo aparece en filas de
+              Jilguero y Delta Argentino.
+          - name: hora
+          - name: direccion
+            description: "'ida' (sale de Tigre) o 'vuelta' (llega a Tigre)."
+          - name: fecha_carga
+            description: >
+              Timestamp UTC de la corrida que generó esta fila. Solo
+              para trazabilidad de la carga - no hay histórico de
+              versiones anteriores del horario (full-refresh).
+        config:
+          loaded_at_field: fecha_carga
+          freshness:
+            # El DAG corre @monthly: los umbrales son generosos a
+            # propósito para no alertar en falso entre corridas.
+            warn_after: {count: 35, period: day}
+            error_after: {count: 45, period: day}

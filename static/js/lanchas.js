@@ -30,7 +30,7 @@
   // Pide al service worker que guarde estas páginas para verlas sin conexión,
   // aunque el dispositivo no las haya abierto todavía (ver core/views/sw.py).
   // Los href guardados son relativos a esta página (ej. "?via=..."), no al
-  // service worker (que vive en /sw.js) — hay que resolverlos acá antes de
+  // service worker (que vive en /sw.js) - hay que resolverlos acá antes de
   // mandarlos, si no el SW los interpreta relativos a su propia URL.
   function precachearOffline(hrefs) {
     if (!('serviceWorker' in navigator) || !hrefs.length) return;
@@ -191,7 +191,7 @@
   }
 
   // Si se entró desde una línea del sidebar, el servidor ya marca ese chip
-  // como activo — aplicar el filtro correspondiente a las filas también,
+  // como activo - aplicar el filtro correspondiente a las filas también,
   // no solo el estilo del botón.
   if (filterRow) {
     const activo = filterRow.querySelector('.la-filter-btn.is-active');
@@ -206,7 +206,7 @@
   const searchClearBtn = document.getElementById('la-search-clear');
   const lineasAccordion = document.getElementById('la-lineas-accordion');
   const lineaDrops = document.querySelectorAll('.la-linea-drop');
-  // En mobile/tablet // LÍNEAS arranca colapsado detrás de este <details> —
+  // En mobile/tablet // LÍNEAS arranca colapsado detrás de este <details> -
   // si hay una búsqueda activa hay que abrirlo, si no el resultado filtrado
   // queda escondido adentro sin que se pueda elegir.
   const sidebarToggle = document.getElementById('la-sidebar-toggle');
@@ -231,7 +231,7 @@
   if (searchInput && lineaDrops.length) {
     searchInput.addEventListener('input', aplicarFiltroBusqueda);
     // Si venimos de un click en un resultado filtrado (?buscar=... en la
-    // URL), el input ya trae ese valor server-side — aplicar el filtro de
+    // URL), el input ya trae ese valor server-side - aplicar el filtro de
     // una para no mostrar todo abierto hasta el próximo tipeo.
     if (searchInput.value.trim()) aplicarFiltroBusqueda();
   }
@@ -246,7 +246,7 @@
 
   // Mientras haya una búsqueda activa, un click en cualquier link interno
   // (un resultado del recorrido filtrado, o cambiar de tab Hoy/Semana) se
-  // lleva la búsqueda puesta en la URL — si no, al recargar la página el
+  // lleva la búsqueda puesta en la URL - si no, al recargar la página el
   // input queda vacío y el acordeón "se abre todo" (pierde el filtro).
   const contenedoresConBusqueda = [
     lineasAccordion,
@@ -265,6 +265,40 @@
         url.searchParams.set('buscar', q);
         window.location.href = url.toString();
       });
+    });
+  }
+
+  /* ── Ficha técnica: lightbox de capturas del pipeline ── */
+  const lightbox = document.getElementById('la-lightbox');
+  const lightboxImg = document.getElementById('la-lightbox-img');
+  const lightboxClose = lightbox?.querySelector('.la-lightbox-close');
+  const shotTriggers = document.querySelectorAll('.la-shot-btn');
+
+  if (lightbox && lightboxImg && shotTriggers.length) {
+    const openLightbox = (src, alt) => {
+      lightboxImg.src = src;
+      lightboxImg.alt = alt || '';
+      lightbox.hidden = false;
+    };
+    const closeLightbox = () => {
+      lightbox.hidden = true;
+      lightboxImg.src = '';
+    };
+
+    shotTriggers.forEach(trigger => {
+      trigger.addEventListener('click', () => {
+        openLightbox(trigger.dataset.lightboxSrc, trigger.dataset.lightboxAlt);
+      });
+    });
+
+    lightboxClose?.addEventListener('click', closeLightbox);
+
+    lightbox.addEventListener('click', e => {
+      if (e.target === lightbox) closeLightbox();
+    });
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && !lightbox.hidden) closeLightbox();
     });
   }
 

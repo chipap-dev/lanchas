@@ -9,7 +9,7 @@ from .feriados import es_feriado, resolver_tipo_dia
 # Un lugar puede ser un tramo de recorrido (río/arroyo/canal, común a todos
 # los horarios del servicio) o un destino puntual sin tramo propio (un
 # muelle final, solo relevante para las filas cuyo Horario.destino coincide
-# — típicamente una rama de un servicio bifurcado). `_filtro_via` arma el Q
+# - típicamente una rama de un servicio bifurcado). `_filtro_via` arma el Q
 # que matchea ambos casos; `_acotar_a_destino` reduce un queryset de Horario
 # a las filas relevantes cuando el lugar elegido no es un tramo del servicio.
 
@@ -21,16 +21,16 @@ def unificar_ramales(horarios: list[Horario]) -> list[dict]:
     """
     Si más de un ramal pasa por este lugar al mismo horario, se unifican en
     una sola fila con los nombres de servicio distintos separados por "/"
-    (pedido explícito del usuario) — cubre dos casos reales:
+    (pedido explícito del usuario) - cubre dos casos reales:
     - El mismo servicio bifurcado en varios destinos a la misma hora (ej.
       "Troncal" hacia Canal 5 / Río Carabelas / Arroyo Grande, todo a las
       04:30): antes salían 3 filas idénticas porque el destino de cada
-      rama no se muestra en esta tabla — ahora colapsan solas (mismo
+      rama no se muestra en esta tabla - ahora colapsan solas (mismo
       nombre de servicio → 1 sola etiqueta).
     - Ramales distintos de la misma línea que coinciden en el horario (ej.
       "Ramal 3" y "Ramal 4" ambos a las 05:30): antes 2 filas separadas,
       ahora "Ramal 3 / Ramal 4" en una sola.
-    Se agrupa por (línea, dirección, hora) — no por empresa a secas, para
+    Se agrupa por (línea, dirección, hora) - no por empresa a secas, para
     no mezclar dos líneas distintas que casualmente compartan horario.
     Si la duración (`servicio.descripcion`) no es la misma para todos los
     ramales agrupados, se omite en vez de mostrar una que no aplica a
@@ -132,19 +132,19 @@ DIAS_SEMANA = ["lunes", "martes", "miercoles", "jueves", "viernes", "sabado", "d
 def horario_semanal_por_via(via_slug: str, direccion: str | None = None) -> list[dict]:
     """
     Cronograma semanal completo (todos los tipo_dia, sin resolver feriados
-    por fecha) para un lugar: una única lista de filas —no una tabla por
-    servicio/ramal— para que un lugar por el que pasan varios ramales se vea
+    por fecha) para un lugar: una única lista de filas (no una tabla por
+    servicio/ramal) para que un lugar por el que pasan varios ramales se vea
     como un solo cuadro.
 
-    Se agrupa por (línea, dirección, hora) — igual que `unificar_ramales()`
-    para la tabla "Hoy" — así que si más de un ramal pasa por acá a la
+    Se agrupa por (línea, dirección, hora) - igual que `unificar_ramales()`
+    para la tabla "Hoy" - así que si más de un ramal pasa por acá a la
     misma hora (el mismo servicio bifurcado en destinos distintos, o
     ramales distintos de la misma línea que coinciden en el horario) se
     unifican en una sola fila con los nombres separados por "/", en vez de
     filas repetidas (pedido explícito del usuario, confirmado también acá
     después de arreglarlo en la tabla "Hoy"). El set de `dias` de cada
     ramal agrupado se UNE (si el lunes pasa uno de los ramales y el martes
-    otro, a esta hora "sí hay lancha" los dos días — no hace falta que sea
+    otro, a esta hora "sí hay lancha" los dos días - no hace falta que sea
     el mismo ramal exacto todos los días para que la fila diga que sí).
 
     `direccion`: 'ida' (sale de Tigre), 'vuelta' (llega a Tigre) o None

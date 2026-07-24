@@ -10,4 +10,4 @@ class Feriado(models.Model):
         verbose_name_plural = "feriados"
 
     def __str__(self):
-        return f"{self.fecha} — {self.nombre}"
+        return f"{self.fecha} - {self.nombre}"

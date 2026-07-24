@@ -1,0 +1,23 @@
+# Plantilla sin credenciales reales. Copiar a profiles.yml (ignorado por
+# git) y ajustar el path de keyfile si hace falta.
+#
+#   cp profiles.yml.example profiles.yml
+#
+dbt_lanchas:
+  target: dev
+  outputs:
+    dev:
+      type: bigquery
+      method: service-account
+      project: chipap
+      dataset: lanchas_raw
+      location: us-central1
+      keyfile: ../secrets/gcp-key.json
+      threads: 4
+      timeout_seconds: 300
+      # Tope duro de bytes escaneados por query (dbt run / dbt test). La
+      # tabla es minuscula (horarios de 3 empresas), esto nunca deberia
+      # activarse en uso normal - es una red de seguridad para no
+      # depender solo de "los numeros dan chico": si algo hace que una
+      # query necesite escanear mas de esto, falla en vez de facturar.
+      maximum_bytes_billed: 209715200  # 200 MB

@@ -1,6 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap');
 
-/* ── Tokens — tema Día (predeterminado) ────────────────── */
+/* ── Tokens - tema Día (predeterminado) ────────────────── */
 .la-app {
   --la-bg:          #F5EEE0;
   --la-bg-alt:      #F0E7D5;
@@ -29,7 +29,7 @@
   --la-icon-grad:   linear-gradient(160deg, #39271A, #20140A);
 }
 
-/* ── Tokens — tema Noche ───────────────────────────────── */
+/* ── Tokens - tema Noche ───────────────────────────────── */
 .la-app[data-theme="night"] {
   --la-bg:          #14100C;
   --la-bg-alt:      #1B150F;
@@ -62,6 +62,56 @@
 .la-app * { box-sizing: border-box; }
 .la-app a { text-decoration: none; color: inherit; }
 .la-app button { cursor: pointer; font-family: inherit; border: none; background: none; padding: 0; }
+
+/* ── Breadcrumb ────────────────────────────────────────── */
+.la-breadcrumb {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 8px 22px;
+  background: var(--la-bg-alt);
+  border-bottom: 1px solid var(--la-divider);
+}
+.la-bc-path {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--la-muted);
+}
+.la-bc-eyebrow {
+  color: var(--la-accent);
+  font-weight: 700;
+}
+.la-bc-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.la-bc-tech {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11.5px;
+  color: var(--la-muted2);
+  text-decoration: none;
+}
+.la-bc-tech:hover {
+  color: var(--la-accent-sub);
+  text-decoration: underline;
+}
+.la-bc-sep {
+  font-size: 11.5px;
+  color: var(--la-border);
+}
+.la-bc-back {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+  color: var(--la-accent-sub);
+  font-weight: 700;
+  text-decoration: none;
+}
+.la-bc-back:hover {
+  text-decoration: underline;
+}
 
 /* ── Topbar ────────────────────────────────────────────── */
 .la-topbar {
@@ -204,7 +254,7 @@
   min-height: 500px;
 }
 
-/* Desktop: el acordeón de líneas queda siempre visible — el <details> que
+/* Desktop: el acordeón de líneas queda siempre visible - el <details> que
    lo envuelve (.la-sidebar-toggle) solo sirve para colapsarlo en mobile/tablet. */
 @media (min-width: 1040px) {
   .la-sidebar-toggle > .la-lineas-accordion { display: flex !important; }
@@ -256,8 +306,8 @@
 /* ── Main ──────────────────────────────────────────────── */
 .la-main { display: flex; flex-direction: column; min-width: 0; }
 
-/* Próxima card (mobile) — Ida y Vuelta al mismo tiempo, ver .la-next-dir*.
-   Solo la hora (tal como figura en el PDF, sin cuenta regresiva — pedido
+/* Próxima card (mobile) - Ida y Vuelta al mismo tiempo, ver .la-next-dir*.
+   Solo la hora (tal como figura en el PDF, sin cuenta regresiva - pedido
    explícito). Ruta + línea van en una sola línea, compacto. */
 .la-mobile-next { display: none; }
 .la-mobile-next-head { display: flex; align-items: center; justify-content: space-between; }
@@ -293,7 +343,7 @@
 .la-station-chip:hover { color: var(--la-text-body); }
 .la-station-chip.is-active { background: var(--la-accent); color: #F5EEE0; border-color: var(--la-accent); font-weight: 700; }
 
-/* Próxima banner (tablet) — Ida y Vuelta lado a lado (o una sola, en las
+/* Próxima banner (tablet) - Ida y Vuelta lado a lado (o una sola, en las
    pestañas de Semana). Solo la hora, sin cuenta regresiva. */
 .la-proxima-banner { display: none; }
 .la-proxima-banner-dir { flex: 1; min-width: 0; }
@@ -346,7 +396,7 @@
 .la-vista-tab:hover { color: var(--la-text-body); }
 .la-vista-tab.is-active { background: var(--la-accent); color: #F5EEE0; border-color: var(--la-accent); }
 
-/* Aviso "datos de hoy" / cómo usar la duración — <details> nativo: en
+/* Aviso "datos de hoy" / cómo usar la duración - <details> nativo: en
    mobile arranca colapsado atrás de un "!" (ver media query mobile);
    en desktop/tablet el contenido queda siempre visible. */
 .la-info-flag {
@@ -372,12 +422,12 @@
    que pasa por detrás al scrollear (reportado en un celular real, se veía
    texto de otra celda "sangrando" por los bordes) y no quede pegada al
    borde real de la pantalla:
-   1) El padding vertical vive en CADA celda, no en la fila — si viviera en
+   1) El padding vertical vive en CADA celda, no en la fila - si viviera en
       la fila, la celda HORA (una sola línea) quedaba más baja que SERVICIO
       cuando este ocupa 2 líneas (nombre + duración), y su fondo opaco no
       llegaba a cubrir esos bordes.
    2) El margen visual horizontal vive en `.la-semana-wrap`, que envuelve a
-      `.la-semana-table` desde AFUERA y no scrollea — probé primero ese
+      `.la-semana-table` desde AFUERA y no scrollea - probé primero ese
       padding en `.la-semana-table` (el que tiene overflow-x) pero el
       padding-inicio de un contenedor con scroll no se respeta una vez que
       el contenido se movió (se "pierde"), y volvía a colarse texto de
@@ -544,7 +594,7 @@
 }
 .la-tech-intro {
   font-size: 14px; line-height: 1.55; color: var(--la-muted);
-  max-width: 640px; margin: 14px 0 0;
+  max-width: none; margin: 14px 0 0;
 }
 
 /* Pipeline */
@@ -589,10 +639,89 @@
   font-size: 15px; color: var(--la-sep);
 }
 
-/* Fuentes / parsing / normalización / arquitectura */
-.la-fuentes {
-  display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px;
+/* Data layer: conector + segundo pipeline (BigQuery + dbt + Airflow) */
+.la-pipe-connector {
+  text-align: center;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11.5px; letter-spacing: .5px;
+  color: var(--la-muted2);
+  margin: 2px 0 16px;
 }
+.la-datalayer-pipe {
+  margin-top: 0;
+  margin-bottom: 24px;
+}
+
+/* Capturas reales */
+.la-shots {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px;
+  margin: 0 0 24px;
+}
+.la-shot { min-width: 0; margin: 0; }
+.la-shot-btn {
+  display: block; width: 100%; padding: 0; border: none;
+  background: none; cursor: zoom-in;
+}
+.la-shot-btn img {
+  display: block; width: 100%; border-radius: 10px;
+  border: 1px solid var(--la-border);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, .12);
+  transition: box-shadow .15s ease;
+}
+.la-shot-btn:hover img,
+.la-shot-btn:focus-visible img {
+  box-shadow: 0 10px 24px rgba(0, 0, 0, .22);
+}
+.la-shot figcaption {
+  font-size: 11.5px; line-height: 1.4; color: var(--la-muted);
+  margin-top: 8px;
+}
+
+.la-lightbox {
+  position: fixed; inset: 0; z-index: 999;
+  display: flex; align-items: center; justify-content: center;
+  padding: 40px;
+  background: rgba(15, 12, 8, .88);
+}
+.la-lightbox[hidden] { display: none; }
+.la-lightbox-img {
+  display: block; max-width: 100%; max-height: 100%;
+  border-radius: 10px;
+  box-shadow: 0 30px 70px rgba(0, 0, 0, .5);
+}
+.la-lightbox-close {
+  position: absolute; top: 24px; right: 28px;
+  width: 40px; height: 40px; border-radius: 50%; border: none;
+  background: rgba(255, 255, 255, .12); color: #fff;
+  font-size: 22px; line-height: 1; cursor: pointer;
+}
+.la-lightbox-close:hover { background: rgba(255, 255, 255, .22); }
+
+/* Decisiones de diseño */
+.la-highlights {
+  display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px;
+  margin-bottom: 28px;
+}
+.la-highlight-item {
+  min-width: 0;
+  background: var(--la-bg-elev);
+  border: 1px solid var(--la-divider);
+  border-radius: 12px; padding: 16px 18px;
+}
+.la-highlight-item strong {
+  display: block; font-family: 'Space Grotesk', sans-serif;
+  font-size: 14.5px; font-weight: 700; letter-spacing: -.2px;
+  margin-bottom: 6px; color: var(--la-text);
+}
+.la-highlight-item p { font-size: 12.5px; line-height: 1.5; color: var(--la-muted); margin: 0; }
+
+/* Fuentes / parsing / normalización / carga / modelado / orquestación / arquitectura */
+.la-fuentes {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px;
+}
+.la-detail-bq { border-top-color: var(--la-accent); }
+.la-detail-dbt { border-top-color: var(--la-live-dot); }
+.la-detail-airflow { border-top-color: var(--la-dato); }
 .la-detail-card {
   background: var(--la-bg-elev);
   border: 1px solid var(--la-border);
@@ -694,14 +823,56 @@
 }
 .la-cmd-item span { display: block; font-size: 10.5px; line-height: 1.4; color: var(--la-next-muted); }
 
+/* Repositorio (CTA de cierre) */
+.la-repo-cta {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 20px; flex-wrap: wrap;
+  background: linear-gradient(165deg, var(--la-accent) 0%, var(--la-next-bg) 100%);
+  border-radius: 18px; padding: 30px 32px;
+  margin-top: 18px;
+}
+.la-repo-cta-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px; letter-spacing: 1.5px; color: rgba(255, 255, 255, .65);
+  text-transform: uppercase;
+}
+.la-repo-cta-title {
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 20px; font-weight: 700; margin: 8px 0 6px;
+  letter-spacing: -.3px; color: #fff;
+}
+.la-repo-cta-desc {
+  font-size: 13px; line-height: 1.5; color: rgba(255, 255, 255, .75);
+  margin: 0; max-width: 420px;
+}
+.la-repo-cta-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 13px 24px; border-radius: 999px;
+  background: #fff; color: var(--la-next-bg);
+  font-family: 'Space Grotesk', sans-serif;
+  font-size: 14px; font-weight: 700; text-decoration: none;
+  white-space: nowrap;
+  transition: transform .12s ease, box-shadow .16s ease;
+}
+.la-repo-cta-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, .25);
+}
+
 @media (max-width: 1080px) {
-  .la-fuentes { grid-template-columns: 1fr; }
+  .la-fuentes { grid-template-columns: repeat(2, 1fr); }
   .la-stackgrid { grid-template-columns: 1fr; }
+  .la-shots { grid-template-columns: repeat(2, 1fr); }
 }
 @media (max-width: 639px) {
   .la-tech { padding: 32px 16px 40px; }
   .la-techstack-card, .la-cli-card { padding: 20px; }
   .la-techstack { grid-template-columns: 1fr; }
+  .la-fuentes { grid-template-columns: 1fr; }
+  .la-highlights { grid-template-columns: 1fr; }
+  .la-shots { grid-template-columns: 1fr; }
+  .la-repo-cta { flex-direction: column; align-items: flex-start; padding: 24px 20px; }
+  .la-repo-cta-btn { width: 100%; }
 }
 
 /* ── Tablet (640–1039) ─────────────────────────────────── */
@@ -710,7 +881,7 @@
   .la-rail { display: none; }
 
   /* Líneas: acordeón colapsado por defecto (nativo del <details>, sin JS),
-     detrás de la misma etiqueta "// LÍNEAS" — antes desaparecía del todo. */
+     detrás de la misma etiqueta "// LÍNEAS" - antes desaparecía del todo. */
   .la-sidebar {
     border-right: none;
     border-bottom: 1px solid var(--la-divider);
@@ -795,11 +966,11 @@
   .la-empty { padding: 20px 16px; }
 
   /* Cronograma semanal: HORA sigue primera (con la mitad del margen
-     izquierdo) e inmediatamente después los días — son lo que se quiere ver
+     izquierdo) e inmediatamente después los días - son lo que se quiere ver
      de un vistazo. LÍNEA·SERVICIO pasa al final (hay que scrollear), antes
      tapaba los días apenas se entraba a la vista.
      min-width en la fila es necesario, no cosmético: HORA es sticky y su
-     "cajón" contenedor es la fila misma — si la fila queda más angosta que
+     "cajón" contenedor es la fila misma - si la fila queda más angosta que
      el contenido real (que desborda visualmente por las columnas fijas),
      sticky se topa con ese borde angosto a mitad de scroll y se escapa
      hacia la izquierda en vez de seguir fija. Debe cubrir el total real:

@@ -30,7 +30,7 @@ class Servicio(models.Model):
         ordering = ["linea", "orden", "nombre"]
 
     def __str__(self):
-        return f"{self.linea} — {self.nombre}"
+        return f"{self.linea} - {self.nombre}"
 
 
 class RecorridoTramo(models.Model):
@@ -58,4 +58,4 @@ class RecorridoTramo(models.Model):
         ]
 
     def __str__(self):
-        return f"{self.servicio} — tramo {self.orden}: {self.via}"
+        return f"{self.servicio} - tramo {self.orden}: {self.via}"

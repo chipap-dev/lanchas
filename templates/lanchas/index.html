@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Lanchas — horarios · Delta del Tigre{% endblock %}
+{% block title %}Chipap | Lanchas{% endblock %}
 {% block favicon %}<link rel="icon" type="image/png" href="{% static 'img/logos/lanchas.png' %}" />{% endblock %}
 {% block pwa %}
 <link rel="manifest" href="{% static 'pwa/manifest-lanchas.json' %}" />
@@ -13,7 +13,7 @@
 {% block og_tags %}
 <meta property="og:type" content="website" />
 <meta property="og:url" content="{{ request.build_absolute_uri }}" />
-<meta property="og:title" content="Lanchas — horarios · Delta del Tigre | Chipap" />
+<meta property="og:title" content="Lanchas - horarios · Delta del Tigre | Chipap" />
 <meta property="og:description" content="Consultá los horarios de las lanchas colectivas del Delta del Tigre sin buscar entre varios PDF." />
 <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'img/logos/lanchas.png' %}" />
 <meta property="og:image:alt" content="Lanchas" />
@@ -22,7 +22,7 @@
 <meta name="theme-color" content="#F5EEE0" id="la-theme-meta" />
 <script>
 // Si no se pidió una vía puntual (?via=...), abrir directo el primer
-// favorito guardado en este dispositivo — antes de pintar nada, para que
+// favorito guardado en este dispositivo - antes de pintar nada, para que
 // no se vea un flash del recorrido por defecto del servidor. El favorito
 // solo define la estación por defecto: se descarta el filtro de empresa
 // que traiga guardado para que // LÍNEAS arranque siempre plegado.
@@ -40,11 +40,25 @@
 </script>
 {% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/lanchas.css' %}?v=20260707i" />
+<link rel="stylesheet" href="{% static 'css/lanchas.css' %}?v=20260723d" />
 {% endblock %}
 
 {% block content %}
 <div class="la-app" id="la-app" data-theme="day">
+
+  <!-- ── BREADCRUMB ──────────────────────────────────────── -->
+  <div class="la-breadcrumb">
+    <div class="la-bc-path">
+      <span class="la-bc-eyebrow">// SISTEMAS</span> / lanchas
+    </div>
+    <div class="la-bc-right">
+      <a href="#la-tech" class="la-bc-tech">ver ficha técnica</a>
+      <span class="la-bc-sep" aria-hidden="true">·</span>
+      <a href="https://github.com/chipap-dev/lanchas" class="la-bc-tech" target="_blank" rel="noopener">ver el código en GitHub</a>
+      <span class="la-bc-sep" aria-hidden="true">·</span>
+      <a href="/#sistemas" class="la-bc-back">← volver a sistemas</a>
+    </div>
+  </div>
 
   <!-- ── TOPBAR ──────────────────────────────────────────── -->
   <header class="la-topbar">
@@ -127,7 +141,7 @@
     <main class="la-main">
 
       <!-- Próxima card: mobile only. Solo la hora (tal como figura en el
-           PDF, sin cuenta regresiva — pedido explícito). En "Hoy" muestra
+           PDF, sin cuenta regresiva - pedido explícito). En "Hoy" muestra
            Ida y Vuelta; en "Semana sale de Tigre" solo Ida, en "Semana
            llega a Tigre" solo Vuelta. Siempre visible si hay una vía
            activa (con su propio "sin más..." si no queda nada hoy). -->
@@ -253,7 +267,7 @@
       <details class="la-info-flag">
         <summary class="la-info-flag-summary" aria-label="Aclaración sobre los horarios">!</summary>
         <div class="la-info-flag-body">
-          {% if vista == "hoy" %}Mostrando horarios de <strong>hoy, {{ fecha_label }}</strong> — no refleja demoras en tiempo real.<br>{% endif %}
+          {% if vista == "hoy" %}Mostrando horarios de <strong>hoy, {{ fecha_label }}</strong> - no refleja demoras en tiempo real.<br>{% endif %}
           Los horarios son siempre desde/hacia Tigre. La <strong>duración aprox.</strong> de cada servicio (⏱) es la del tramo completo: sumala a la hora si es Ida (sale Tigre) o restala si es Vuelta (llega Tigre) para estimar cuándo pasa por un punto intermedio del recorrido.
         </div>
       </details>
@@ -272,7 +286,7 @@
 
       {% if filas_semana %}
       <!-- .la-semana-wrap da el margen visual desde AFUERA del contenedor
-           con scroll — si ese padding viviera en .la-semana-table (el que
+           con scroll - si ese padding viviera en .la-semana-table (el que
            tiene overflow-x), se "pierde" apenas se scrollea y la columna
            HORA (sticky) queda pegada al borde real / deja pasar texto de
            SERVICIO por esa franja (bug real, visto en celular). -->
@@ -447,8 +461,76 @@
     <h2 class="la-tech-title">Arquitectura e implementación</h2>
     <p class="la-tech-intro">De 4 PDF oficiales del gobierno bonaerense a una tabla de horarios navegable: descarga, parsing y modelo de datos detrás de Lanchas.</p>
 
-    <!-- Pipeline -->
+    <!-- Pipeline: capa de datos (lo más relevante primero) -->
     <div class="la-pipe-wrap">
+      <div class="la-pipe-node">
+        <span class="la-pipe-badge">orm</span>
+        <strong>Postgres</strong>
+        <span>Empresa&rarr;Línea&rarr;Servicio&rarr;Horario</span>
+      </div>
+      <span class="la-pipe-arrow" aria-hidden="true">&rarr;</span>
+      <div class="la-pipe-node">
+        <span class="la-pipe-badge">bq</span>
+        <strong>BigQuery</strong>
+        <span>WRITE_TRUNCATE, full-refresh</span>
+      </div>
+      <span class="la-pipe-arrow" aria-hidden="true">&rarr;</span>
+      <div class="la-pipe-node">
+        <span class="la-pipe-badge">dbt</span>
+        <strong>dbt</strong>
+        <span>staging &rarr; star schema</span>
+      </div>
+      <span class="la-pipe-arrow" aria-hidden="true">&rarr;</span>
+      <div class="la-pipe-node la-pipe-node-out">
+        <span class="la-pipe-badge is-out">monthly</span>
+        <strong>Airflow</strong>
+        <span>orquesta y testea</span>
+      </div>
+    </div>
+
+    <!-- capturas reales: prueba de que esto corrió de verdad -->
+    <div class="la-shots">
+      <figure class="la-shot">
+        <button type="button" class="la-shot-btn" data-lightbox-src="{% static 'img/pipeline/airflow_dag_exitoso.png' %}" data-lightbox-alt="Ejecución exitosa del DAG lanchas_dag en Airflow">
+          <img src="{% static 'img/pipeline/airflow_dag_exitoso.png' %}" alt="Ejecución exitosa del DAG lanchas_dag en Airflow" loading="lazy" />
+        </button>
+        <figcaption>Airflow: actualizar_pdfs, cargar_bigquery, dbt_run y dbt_test en verde</figcaption>
+      </figure>
+      <figure class="la-shot">
+        <button type="button" class="la-shot-btn" data-lightbox-src="{% static 'img/pipeline/dbt_lineage.png' %}" data-lightbox-alt="Grafo de lineage de dbt: lanchas_raw.horarios hacia staging, dimensiones y fact_horario">
+          <img src="{% static 'img/pipeline/dbt_lineage.png' %}" alt="Grafo de lineage de dbt: lanchas_raw.horarios hacia staging, dimensiones y fact_horario" loading="lazy" />
+        </button>
+        <figcaption>dbt: lineage de lanchas_raw.horarios → staging → dimensiones → fact_horario</figcaption>
+      </figure>
+      <figure class="la-shot">
+        <button type="button" class="la-shot-btn" data-lightbox-src="{% static 'img/pipeline/dbt_database.png' %}" data-lightbox-alt="Detalle del modelo fact_horario en dbt docs">
+          <img src="{% static 'img/pipeline/dbt_database.png' %}" alt="Detalle del modelo fact_horario en dbt docs" loading="lazy" />
+        </button>
+        <figcaption>fact_horario en producción: grano (horario, vía), 7.100 filas</figcaption>
+      </figure>
+    </div>
+
+    <div class="la-lightbox" id="la-lightbox" hidden>
+      <button type="button" class="la-lightbox-close" aria-label="Cerrar imagen ampliada">&times;</button>
+      <img class="la-lightbox-img" id="la-lightbox-img" src="" alt="" />
+    </div>
+
+    <!-- decisiones de diseño -->
+    <div class="la-highlights">
+      <div class="la-highlight-item">
+        <strong>Full-refresh, no MERGE</strong>
+        <p>Un horario nuevo del gobierno reemplaza al anterior, no convive con él. Cada ejecución vuelca el horario completo a <span class="la-mono">lanchas_raw.horarios</span> con WRITE_TRUNCATE en lugar de upsert por clave: la tabla queda igual al cronograma vigente, sin versiones acumuladas.</p>
+      </div>
+      <div class="la-highlight-item">
+        <strong>Una fila por vía, no por horario</strong>
+        <p>Un mismo horario de lancha pasa por varias vías durante el viaje, no por una sola. fact_horario repite ese horario una vez por cada vía de su recorrido, en lugar de una sola vez por servicio, para mostrar el horario real de paso en cualquier parada intermedia, no solo en el origen y destino.</p>
+      </div>
+    </div>
+
+    <div class="la-pipe-connector">+ en paralelo, sirviendo a quien visita la página ↓</div>
+
+    <!-- Pipeline: la app en vivo -->
+    <div class="la-pipe-wrap la-datalayer-pipe">
       <div class="la-pipe-node">
         <span class="la-pipe-badge">pdf</span>
         <strong>4 PDF oficiales</strong>
@@ -480,8 +562,48 @@
       </div>
     </div>
 
-    <!-- Fuentes / parsing / arquitectura -->
+    <!-- Carga / modelado / orquestación primero, fuente y arquitectura después -->
     <div class="la-fuentes">
+
+      <div class="la-detail-card la-detail-bq">
+        <div class="la-detail-card-label">CARGA</div>
+        <h3>BigQuery</h3>
+        <p class="la-detail-org">lanchas_raw.horarios - full-refresh (WRITE_TRUNCATE)</p>
+        <p class="la-detail-sublabel">EN NÚMEROS</p>
+        <ul class="la-detail-list">
+          <li>fact_horario: 7.100 filas (grano horario + vía)</li>
+          <li>dim_via 72 filas, dim_tipo_dia 8, dim_empresa y dim_linea 3 cada una</li>
+          <li>Cada ejecución reemplaza el dataset completo: no hay versión anterior que conservar</li>
+        </ul>
+      </div>
+
+      <div class="la-detail-card la-detail-dbt">
+        <div class="la-detail-card-label">MODELADO</div>
+        <h3>dbt</h3>
+        <p class="la-detail-org">1 staging + 4 dimensiones + 1 fact, star schema</p>
+        <p class="la-detail-sublabel">HACE</p>
+        <ul class="la-detail-list">
+          <li>stg_lanchas_horarios limpia formato (trim), sin lógica de negocio</li>
+          <li>dim_empresa, dim_linea, dim_via, dim_tipo_dia + fact_horario (grano horario+vía)</li>
+        </ul>
+        <p class="la-detail-sublabel">TESTS</p>
+        <ul class="la-detail-list">
+          <li>31 tests genéricos: not_null, unique, relationships, accepted_values</li>
+          <li>accepted_values fija tipo_dia (8 valores), servicio_tipo y dirección</li>
+        </ul>
+      </div>
+
+      <div class="la-detail-card la-detail-airflow">
+        <div class="la-detail-card-label">ORQUESTACIÓN</div>
+        <h3>Airflow</h3>
+        <p class="la-detail-org">Motor compartido con Mareas (repo hermano); el DAG vive en este repo</p>
+        <p class="la-detail-sublabel">HACE</p>
+        <ul class="la-detail-list">
+          <li>actualizar_pdfs → cargar_bigquery → dbt_run → dbt_test, una vez al mes</li>
+          <li>El repo hermano monta este código como volumen: código y credenciales, nada más</li>
+          <li>El DAG viaja por script (sync_dags.sh), con symlink o copia según el entorno</li>
+        </ul>
+      </div>
 
       <div class="la-detail-card la-detail-fuente">
         <div class="la-detail-card-label">FUENTE OFICIAL</div>
@@ -491,61 +613,33 @@
         <p class="la-detail-sublabel">LA APP DESCARGA</p>
         <ul class="la-detail-list">
           <li>Jilguero (450), Interisleña (451+452 combinada) y Delta Argentino (453)</li>
-          <li>Hash SHA-256 por archivo — combinado para el par 451/452 — para detectar cambios reales</li>
+          <li>Hash SHA-256 por archivo (combinado para el par 451/452) para detectar cambios reales</li>
         </ul>
       </div>
 
       <div class="la-detail-card la-detail-parsing">
-        <div class="la-detail-card-label">PARSING</div>
-        <h3>Un motor común, 3 parsers</h3>
-        <p class="la-detail-org">Los 3 PDF comparten layout — <span class="la-mono">BaseGobiernoParser</span> extrae, cada parser solo ajusta lo propio</p>
+        <div class="la-detail-card-label">PARSING Y NORMALIZACIÓN</div>
+        <h3>Un motor común, reglas explícitas</h3>
+        <p class="la-detail-org"><span class="la-mono">BaseGobiernoParser</span> extrae los 3 PDF; cada ajuste sigue un criterio documentado, no una inferencia automática</p>
         <div class="la-arch-items">
           <div class="la-arch-item">
-            <strong>comun.py</strong>
-            <span>Bloques de tabla, dirección ida/vuelta por color de fila, condiciones por triángulos de color, notas al pie.</span>
+            <strong>Extracción por color, no por texto</strong>
+            <span>Dirección (ida/vuelta) por color de fila, condiciones por triángulos de color - pdfplumber lee tablas por coordenadas.</span>
           </div>
-          <div class="la-arch-item">
-            <strong>jilguero.py &middot; interislena.py &middot; delta.py</strong>
-            <span>Cada uno define solo sus columnas de día (7 u 8) y correcciones puntuales de nombres.</span>
-          </div>
-        </div>
-      </div>
-
-      <div class="la-detail-card la-detail-normaliza">
-        <div class="la-detail-card-label">NORMALIZACIÓN</div>
-        <h3>Consistencia entre fuentes</h3>
-        <p class="la-detail-org">Cada ajuste sigue un criterio explícito y documentado, no una inferencia automática</p>
-        <div class="la-arch-items">
           <div class="la-arch-item">
             <strong>Vías equivalentes</strong>
-            <span>"Boca Arroyo Durazno" y "Boca de Arroyo Durazno" refieren al mismo lugar. Criterio: se compara el nombre en minúscula, sin artículos "de"/"del" y con espacios colapsados; si coincide con una vía ya registrada, se reutiliza en vez de duplicar.</span>
+            <span>"Boca Arroyo Durazno" y "Boca de Arroyo Durazno" se reconocen como el mismo lugar por nombre normalizado, en lugar de duplicarse.</span>
           </div>
           <div class="la-arch-item">
-            <strong>Correcciones puntuales por línea</strong>
-            <span>Algunos nombres de lugar requieren un ajuste de clasificación (ej. "Arroyo Espera" &rarr; "Río Espera" en la línea Jilguero). Criterio: mapa <span class="la-mono">CORRECCIONES_VIA</span> por parser, cada entrada verificada contra el documento original antes de aplicarse.</span>
-          </div>
-          <div class="la-arch-item">
-            <strong>Nombres de servicio duplicados</strong>
-            <span>Dos servicios con el mismo nombre genérico (ej. dos "Troncal") dentro de una línea. Criterio: se agrega el destino final entre paréntesis para diferenciarlos, ej. "Troncal (Paraná Miní)".</span>
-          </div>
-          <div class="la-arch-item">
-            <strong>Ramales coincidentes en horario</strong>
-            <span>Distintos servicios de una misma línea que salen a la misma hora (o un mismo servicio con varios destinos a la vez). Criterio: se agrupan por línea, dirección y hora en una sola fila, con los nombres separados por "/".</span>
-          </div>
-          <div class="la-arch-item">
-            <strong>Feriados</strong>
-            <span>Interisleña no publica una columna de feriados propia. Criterio: un feriado que cae viernes usa el horario de sábado, cualquier otro usa el de domingo. Jilguero y Delta Argentino sí tienen columna propia y la usan directamente.</span>
-          </div>
-          <div class="la-arch-item">
-            <strong>Formato de horarios</strong>
-            <span>Variantes de formato en la hora (ej. "13;30", "03: 30"). Criterio: se normalizan al formato HH:MM antes de guardar.</span>
+            <strong>Feriados y formatos inconsistentes</strong>
+            <span>Interisleña resuelve sus feriados según el día de la semana; typos de hora como "13;30" se normalizan a HH:MM.</span>
           </div>
         </div>
       </div>
 
       <div class="la-detail-card la-detail-arch">
         <div class="la-detail-card-label">ARQUITECTURA</div>
-        <h3>Django ORM &mdash; PostgreSQL</h3>
+        <h3>Django ORM - PostgreSQL</h3>
         <p class="la-detail-org">Sin cache de archivos: los horarios se normalizan y persisten en modelos reales</p>
         <div class="la-arch-items">
           <div class="la-arch-item">
@@ -553,12 +647,8 @@
             <span>Vías (ríos/arroyos) asociadas por M2M vía RecorridoTramo, con orden de recorrido.</span>
           </div>
           <div class="la-arch-item">
-            <strong>Deduplicación de vías</strong>
-            <span>Nombres casi-iguales del PDF (ej. "Boca Arroyo Durazno") se fusionan por nombre normalizado.</span>
-          </div>
-          <div class="la-arch-item">
             <strong>ActualizacionLog</strong>
-            <span>Auditoría de cada corrida del pipeline: errores, notas y conteos por línea.</span>
+            <span>Auditoría de cada ejecución del pipeline: errores, notas y conteos por línea.</span>
           </div>
         </div>
       </div>
@@ -582,6 +672,27 @@
           <div class="la-techstack-item">
             <div class="la-techstack-head">
               <span class="la-techstack-dot is-b" aria-hidden="true"></span>
+              <strong>PostgreSQL</strong>
+            </div>
+            <p>Mismo motor en dev y prod, vía DATABASE_URL.</p>
+          </div>
+          <div class="la-techstack-item">
+            <div class="la-techstack-head">
+              <span class="la-techstack-dot is-c" aria-hidden="true"></span>
+              <strong>BigQuery + dbt</strong>
+            </div>
+            <p>Star schema full-refresh sobre lanchas_raw.horarios, en paralelo a la app.</p>
+          </div>
+          <div class="la-techstack-item">
+            <div class="la-techstack-head">
+              <span class="la-techstack-dot is-a" aria-hidden="true"></span>
+              <strong>Airflow</strong>
+            </div>
+            <p>Orquestación mensual en un repo hermano, compartido con Mareas.</p>
+          </div>
+          <div class="la-techstack-item">
+            <div class="la-techstack-head">
+              <span class="la-techstack-dot is-b" aria-hidden="true"></span>
               <strong>pdfplumber</strong>
             </div>
             <p>Extracción de tablas por coordenadas, no texto plano.</p>
@@ -589,27 +700,41 @@
           <div class="la-techstack-item">
             <div class="la-techstack-head">
               <span class="la-techstack-dot is-c" aria-hidden="true"></span>
-              <strong>PostgreSQL</strong>
+              <strong>Docker + docker-compose</strong>
             </div>
-            <p>Mismo motor en dev y prod, vía DATABASE_URL.</p>
+            <p>Entorno de desarrollo reproducible: web + db con un solo comando.</p>
           </div>
           <div class="la-techstack-item">
             <div class="la-techstack-head">
               <span class="la-techstack-dot is-a" aria-hidden="true"></span>
+              <strong>GitHub Actions</strong>
+            </div>
+            <p>CI en cada push/PR y smoke test semanal contra las fuentes reales.</p>
+          </div>
+          <div class="la-techstack-item">
+            <div class="la-techstack-head">
+              <span class="la-techstack-dot is-b" aria-hidden="true"></span>
+              <strong>pytest / pytest-django</strong>
+            </div>
+            <p>Testing con foco en services y parsers.</p>
+          </div>
+          <div class="la-techstack-item">
+            <div class="la-techstack-head">
+              <span class="la-techstack-dot is-c" aria-hidden="true"></span>
               <strong>Vanilla JS</strong>
             </div>
             <p>Acordeón de líneas, buscador y filtros, sin dependencias.</p>
           </div>
           <div class="la-techstack-item">
             <div class="la-techstack-head">
-              <span class="la-techstack-dot is-b" aria-hidden="true"></span>
+              <span class="la-techstack-dot is-a" aria-hidden="true"></span>
               <strong>localStorage</strong>
             </div>
             <p>Favoritos 100% client-side, sin cuentas ni sesión.</p>
           </div>
           <div class="la-techstack-item">
             <div class="la-techstack-head">
-              <span class="la-techstack-dot is-c" aria-hidden="true"></span>
+              <span class="la-techstack-dot is-b" aria-hidden="true"></span>
               <strong>CSS custom properties</strong>
             </div>
             <p>Temas Día / Noche en tiempo real.</p>
@@ -624,7 +749,7 @@
         <div class="la-cmd-list">
           <div class="la-cmd-item">
             <code>lanchas_inicializar</code>
-            <span>Crea Empresa/Línea en la base — se corre una sola vez.</span>
+            <span>Crea Empresa/Línea en la base - se corre una sola vez.</span>
           </div>
           <div class="la-cmd-item">
             <code>lanchas_descargar_pdfs [--linea N]</code>
@@ -636,7 +761,7 @@
           </div>
           <div class="la-cmd-item">
             <code>lanchas_actualizar [--linea N] [--forzar]</code>
-            <span>Descarga + parseo en un solo paso — cron semanal.</span>
+            <span>Descarga + parseo en un solo paso - cron semanal.</span>
           </div>
           <div class="la-cmd-item">
             <code>lanchas_validar</code>
@@ -646,9 +771,65 @@
             <code>lanchas_listar [--empresa] [--via]</code>
             <span>Exploración rápida de los datos cargados.</span>
           </div>
+          <div class="la-cmd-item">
+            <code>lanchas_cargar_bigquery</code>
+            <span>Sube el horario vigente a BigQuery (WRITE_TRUNCATE, sin histórico).</span>
+          </div>
         </div>
       </div>
 
+    </div>
+
+    <!-- Testing + CI -->
+    <div class="la-detail-card" style="margin-top: 18px;">
+      <div class="la-detail-card-label">TESTING Y CI</div>
+      <h3>Cobertura sobre parsers y services</h3>
+      <p class="la-detail-org">Suite automatizada ejecutada en cada cambio, separada del chequeo contra las fuentes reales</p>
+      <div class="la-arch-items">
+        <div class="la-arch-item">
+          <strong>pytest + pytest-django</strong>
+          <span>Cubre los 3 parsers por empresa: errores explícitos vía <span class="la-mono">ParserError</span> y casos borde como horarios superpuestos o typos de hora (ej. "13;30").</span>
+        </div>
+        <div class="la-arch-item">
+          <strong>PDFs sintéticos</strong>
+          <span>Generados con <span class="la-mono">reportlab</span> para reproducir el layout de cada fuente. No se distribuyen los PDF reales de las empresas.</span>
+        </div>
+        <div class="la-arch-item">
+          <strong>Coverage</strong>
+          <span>Enfocado en <span class="la-mono">services/</span> y <span class="la-mono">parsers/</span>, el código con más lógica de negocio.</span>
+        </div>
+        <div class="la-arch-item">
+          <strong>GitHub Actions</strong>
+          <span>CI corre la suite en cada push/PR. Un smoke test separado, en cron semanal, valida contra las fuentes reales del gobierno.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cómo correrlo local -->
+    <div class="la-cli-card" style="margin-top: 18px;">
+      <div class="la-cli-eyebrow">CÓMO CORRERLO LOCAL</div>
+      <h3 class="la-cli-title">Un comando, datos reales incluidos</h3>
+      <p class="la-cli-intro">El primer boot corre migraciones y carga el fixture con datos reales automáticamente, sin pasos manuales adicionales.</p>
+      <div class="la-cmd-list">
+        <div class="la-cmd-item">
+          <code>cp .env.example .env</code>
+          <span>Variables de entorno de ejemplo, listas para levantar el proyecto.</span>
+        </div>
+        <div class="la-cmd-item">
+          <code>docker compose up --build</code>
+          <span>Levanta web + db, corre migraciones y carga datos reales de ejemplo.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Repositorio -->
+    <div class="la-repo-cta">
+      <div>
+        <div class="la-repo-cta-label">// REPOSITORIO</div>
+        <h3 class="la-repo-cta-title">github.com/chipap-dev/lanchas</h3>
+        <p class="la-repo-cta-desc">Repositorio público, standalone, clonable sin credenciales - instrucciones de instalación con Docker incluidas.</p>
+      </div>
+      <a class="la-repo-cta-btn" href="https://github.com/chipap-dev/lanchas" target="_blank" rel="noopener noreferrer">Ver en GitHub →</a>
     </div>
 
   </section>
@@ -657,5 +838,5 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/lanchas.js' %}?v=20260707e"></script>
+<script src="{% static 'js/lanchas.js' %}?v=20260723a"></script>
 {% endblock %}

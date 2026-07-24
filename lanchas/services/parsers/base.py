@@ -26,9 +26,9 @@ Formato de salida normalizado (lista de dicts):
 
 Los parsers pueden exponer, luego de parse(), dos atributos de instancia
 opcionales que el comando/loader mergean en el ActualizacionLog:
-- self.errores: list[str]  — bloques de servicio que fallaron pero no
+- self.errores: list[str]  - bloques de servicio que fallaron pero no
   abortaron el resto del parseo.
-- self.notas: list[str]    — anomalías no bloqueantes del PDF (datos
+- self.notas: list[str]    - anomalías no bloqueantes del PDF (datos
   faltantes, heurísticas aplicadas) para revisión manual.
 
 Notas de implementación:

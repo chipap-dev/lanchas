@@ -24,7 +24,7 @@ class Horario(models.Model):
     Horario de salida o llegada a Tigre para un servicio en un tipo de día.
 
     Solo se registra la hora de salida desde Tigre (ida) o de llegada a Tigre
-    (vuelta). No hay horarios intermedios por parada — eso no aparece en los PDFs.
+    (vuelta). No hay horarios intermedios por parada - eso no aparece en los PDFs.
 
     Para consultas con feriados, usar services.feriados.resolver_tipo_dia()
     antes de filtrar por tipo_dia: esa función aplica la lógica por empresa.

@@ -97,7 +97,7 @@ class Command(BaseCommand):
             except NotImplementedError as exc:
                 self.stderr.write(f"Línea {linea.numero}: {exc}")
             except ParserError as exc:
-                self.stderr.write(f"Línea {linea.numero}: error de parseo — {exc}")
+                self.stderr.write(f"Línea {linea.numero}: error de parseo - {exc}")
                 total_errores.append(str(exc))
 
         if total_errores:
