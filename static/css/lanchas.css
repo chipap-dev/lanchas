@@ -89,6 +89,9 @@
   gap: 10px;
 }
 .la-bc-tech {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   font-family: 'JetBrains Mono', monospace;
   font-size: 11.5px;
   color: var(--la-muted2);
@@ -103,6 +106,9 @@
   color: var(--la-border);
 }
 .la-bc-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
   font-family: 'JetBrains Mono', monospace;
   font-size: 12px;
   color: var(--la-accent-sub);
@@ -371,6 +377,29 @@
 }
 .la-fav-star:hover { color: var(--la-dato); transform: scale(1.1); }
 .la-fav-star.is-active { color: var(--la-dato); }
+
+/* ── Compartir ─────────────────────────────────────────── */
+.la-title-actions { display: inline-flex; align-items: center; gap: 6px; }
+.la-share { position: relative; }
+.la-share-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 28px; height: 28px; border-radius: 50%;
+  color: var(--la-muted2);
+  transition: color .12s, background .12s;
+}
+.la-share-btn:hover, .la-share-btn[aria-expanded="true"] { color: var(--la-dato); background: var(--la-bg-alt); }
+.la-share-menu {
+  position: absolute; top: calc(100% + 6px); right: 0; z-index: 20;
+  min-width: 190px; background: var(--la-bg-elev); border: 1px solid var(--la-border);
+  border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.18); padding: 6px;
+  display: flex; flex-direction: column; gap: 2px;
+}
+.la-share-item {
+  display: block; width: 100%; text-align: left; padding: 8px 10px; border-radius: 6px;
+  font-size: 13px; color: var(--la-text-body); text-decoration: none; background: none; border: none;
+  cursor: pointer;
+}
+.la-share-item:hover { background: var(--la-bg-alt); color: var(--la-accent); }
 
 /* Filter chips */
 .la-filter-row {
@@ -924,6 +953,13 @@
 
 /* ── Mobile (<640) ─────────────────────────────────────── */
 @media (max-width: 639px) {
+  /* Breadcrumb: mismo padding lateral que la topbar para que los iconos
+     queden alineados con el título, y solo iconos (sin texto) para que
+     entre en una sola línea */
+  .la-breadcrumb { padding: 8px 14px; }
+  .la-bc-label { display: none; }
+  .la-bc-right { gap: 14px; }
+
   .la-topbar { padding: 10px 14px; gap: 10px; }
   .la-theme-seg { display: none; }
   .la-theme-icon-btn { display: flex; }

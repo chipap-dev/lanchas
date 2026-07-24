@@ -303,3 +303,71 @@
   }
 
 })();
+
+/* ── Compartir: copiar enlace / WhatsApp / Web Share API ── */
+(function () {
+  'use strict';
+
+  const wrap = document.getElementById('la-share');
+  const btn = document.getElementById('la-share-btn');
+  const menu = document.getElementById('la-share-menu');
+  const copyBtn = document.getElementById('la-share-copy');
+  const waLink = document.getElementById('la-share-wa');
+  if (!wrap || !btn || !menu) return;
+
+  function shareText() {
+    return btn.dataset.shareText || document.title;
+  }
+
+  function shareUrl() {
+    return btn.dataset.shareHref
+      ? new URL(btn.dataset.shareHref, window.location.href).toString()
+      : window.location.href;
+  }
+
+  function closeMenu() {
+    menu.hidden = true;
+    btn.setAttribute('aria-expanded', 'false');
+  }
+
+  function openMenu() {
+    const url = shareUrl();
+    if (waLink) waLink.href = 'https://wa.me/?text=' + encodeURIComponent(shareText() + ' ' + url);
+    menu.hidden = false;
+    btn.setAttribute('aria-expanded', 'true');
+  }
+
+  btn.addEventListener('click', () => {
+    if (navigator.share) {
+      navigator.share({ title: document.title, text: shareText(), url: shareUrl() }).catch(() => {});
+      return;
+    }
+    if (menu.hidden) openMenu(); else closeMenu();
+  });
+
+  if (copyBtn) {
+    copyBtn.addEventListener('click', () => {
+      const url = shareUrl();
+      const original = copyBtn.textContent;
+      const showCopied = () => {
+        copyBtn.textContent = '¡Enlace copiado!';
+        setTimeout(() => { copyBtn.textContent = original; }, 1800);
+      };
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(url).then(showCopied).catch(() => window.prompt('Copiá el enlace:', url));
+      } else {
+        window.prompt('Copiá el enlace:', url);
+      }
+      closeMenu();
+    });
+  }
+
+  document.addEventListener('click', e => {
+    if (menu.hidden || wrap.contains(e.target)) return;
+    closeMenu();
+  });
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') closeMenu();
+  });
+})();
