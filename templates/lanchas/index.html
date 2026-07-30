@@ -259,7 +259,7 @@
                       aria-label="Marcar como favorito" title="Marcar como favorito">☆</button>
               <div class="la-share" id="la-share">
                 <button type="button" class="la-share-btn" id="la-share-btn" aria-haspopup="true" aria-expanded="false"
-                        data-share-text="Horarios de lanchas — {{ estacion_activa.nombre }}"
+                        data-share-text="Horarios de lanchas - {{ estacion_activa.nombre }}"
                         data-share-href="?via={{ estacion_activa.slug }}&vista={{ vista }}{% if empresa_activa %}&empresa={{ empresa_activa.slug }}{% endif %}"
                         aria-label="Compartir" title="Compartir">
                   <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.6" y1="10.6" x2="15.4" y2="6.4"/><line x1="8.6" y1="13.4" x2="15.4" y2="17.6"/></svg>

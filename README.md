@@ -4,6 +4,8 @@
 
 A Django app that scrapes, parses, and serves the official passenger-boat schedules for the Tigre Delta (Argentina) as a searchable, mobile-friendly timetable (with a BigQuery + dbt + Airflow layer behind it for analytics).
 
+The schedules are split across three companies' PDFs with no single place to check them, and finding a departure time takes longer than it should. I use it myself.
+
 **Dockerized, with real pre-loaded data.** `docker compose up` and go.
 
 ---
@@ -12,7 +14,7 @@ A Django app that scrapes, parses, and serves the official passenger-boat schedu
 
 - Parses official government PDF schedules for 3 boat companies with `pdfplumber` (table extraction, color-coded direction detection, footnote matching)
 - Normalizes source data into a relational model: companies → lines → services → stops → timetable rows
-- Resolves holiday schedules against Argentina's official calendar
+- Holidays: lines that carry a holiday column in the PDF store it as-is in `Horario.tipo_dia`; Interisleña doesn't have one, so its holidays are resolved at query time by reassigning to Saturday/Sunday
 - "Today" view, weekly schedule per direction, JS-free accordion navigation
 - Local favorites via `localStorage`, no accounts needed
 
